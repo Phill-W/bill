@@ -4,8 +4,16 @@ import { mount } from '@vue/test-utils'
 import App from '../App.vue'
 
 describe('App', () => {
-  it('mounts renders properly', () => {
-    const wrapper = mount(App)
-    expect(wrapper.text()).toContain('You did it!')
+  it('renders routed page content', () => {
+    const wrapper = mount(App, {
+      global: {
+        stubs: {
+          RouterView: {
+            template: '<main>报销单列表</main>',
+          },
+        },
+      },
+    })
+    expect(wrapper.text()).toContain('报销单列表')
   })
 })

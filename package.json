@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "mock": "node scripts/mock-server.mjs",
+    "dev:mock": "run-p mock dev",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "test:unit": "vitest",
@@ -16,6 +18,11 @@
     "format": "prettier --write --experimental-cli src/"
   },
   "dependencies": {
+    "axios": "^1.16.1",
+    "dayjs": "^1.11.20",
+    "decimal.js": "^10.6.0",
+    "element-plus": "^2.14.0",
+    "nanoid": "^5.1.11",
     "pinia": "^3.0.4",
     "vue": "^3.5.32",
     "vue-router": "^5.0.4"
