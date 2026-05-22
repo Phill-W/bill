@@ -1,7 +1,7 @@
 export type YesNo = '0' | '1'
 
 export interface ApiResult<T> {
-  code: string
+  code: number
   message: string
   data: T
   traceId?: string

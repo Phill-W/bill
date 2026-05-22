@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "mock": "node scripts/mock-server.mjs",
-    "dev:mock": "run-p mock dev",
+    "dev:mock": "run-p mock \"dev -- --mode mock\"",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "test:unit": "vitest",

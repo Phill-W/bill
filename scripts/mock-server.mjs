@@ -15,7 +15,7 @@ function send(res, status, data) {
   })
   res.end(
     JSON.stringify({
-      code: status >= 200 && status < 300 ? 'SUCCESS' : 'SYSTEM_ERROR',
+      code: status >= 200 && status < 300 ? 200 : 500,
       message: status >= 200 && status < 300 ? '操作成功' : '请求失败',
       data,
       traceId: String(Date.now()),

@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
+import type { AxiosError, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import { ElLoading, ElMessage } from 'element-plus'
 
 import type { ApiResult } from '@/types/reimBill'
@@ -9,7 +9,7 @@ interface RequestConfig extends AxiosRequestConfig {
 }
 
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:4523',
+  baseURL: import.meta.env.VITE_API_URL ?? '',
   timeout: 60000,
   headers: {
     'Content-Type': 'application/json;charset=UTF-8',
@@ -32,6 +32,20 @@ function hideLoading() {
   loadingInstance = null
 }
 
+export function isApiSuccess(result: Pick<ApiResult<unknown>, 'code'> | null | undefined) {
+  return result?.code === 200
+}
+
+export function getApiErrorMessage(result: Partial<ApiResult<unknown>> | null | undefined) {
+  return result?.errors?.[0]?.message || result?.message || '请求失败'
+}
+
+function getAxiosErrorMessage(error: AxiosError<ApiResult<unknown>>) {
+  if (error.response?.data) return getApiErrorMessage(error.response.data)
+  if (error.message?.includes('timeout')) return '请求超时'
+  return '服务连接失败'
+}
+
 instance.interceptors.request.use(
   (config: InternalAxiosRequestConfig & { loading?: boolean }) => {
     if (config.loading) showLoading()
@@ -50,16 +64,13 @@ instance.interceptors.response.use(
   (response) => {
     hideLoading()
     const result = response.data as ApiResult<unknown>
-    if (result?.code === 'SUCCESS') return result.data as AxiosResponse
-    ElMessage.error(result?.message || '请求失败')
+    if (isApiSuccess(result)) return result.data as AxiosResponse
+    ElMessage.error(getApiErrorMessage(result))
     return Promise.reject(result)
   },
-  (error) => {
+  (error: AxiosError<ApiResult<unknown>>) => {
     hideLoading()
-    const message =
-      error.response?.data?.message ||
-      (error.message?.includes('timeout') ? '请求超时' : '服务连接失败')
-    ElMessage.error(message)
+    ElMessage.error(getAxiosErrorMessage(error))
     return Promise.reject(error)
   },
 )
