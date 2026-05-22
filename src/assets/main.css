@@ -2,6 +2,30 @@
   box-sizing: border-box;
 }
 
+:root {
+  --bill-page-bg: #f6f8fc;
+  --bill-panel-bg: #f8f8f9;
+  --bill-panel-border: #e7eaf0;
+  --bill-panel-header-bg: #f2f3f6;
+  --bill-panel-header-text: #31415c;
+  --bill-panel-subtle: #7f8aa3;
+  --bill-brand: #4a78ff;
+  --bill-brand-soft: #eaf1ff;
+  --bill-link: #5b7cff;
+  --bill-link-hover: #3f67f0;
+  --bill-warning-bg: #fff7e8;
+  --bill-warning-text: #a76a16;
+  --bill-accent: #ff8a2a;
+  --bill-status-muted: #8b97ab;
+  --bill-status-info: #6586ff;
+  --bill-table-head: #f7f8fb;
+  --bill-table-border: #edf1f7;
+  --bill-shadow-soft: 0 8px 24px rgba(40, 72, 132, 0.08);
+  --bill-field-bg: #f8f8f9;
+  --bill-field-border: #dfe4ec;
+  --bill-field-text: #344054;
+}
+
 html,
 body,
 #app {
@@ -10,7 +34,7 @@ body,
   height: 100%;
   margin: 0;
   color: #1f2f3d;
-  background: #f5f7fa;
+  background: var(--bill-page-bg);
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
   font-size: 14px;
@@ -22,12 +46,12 @@ a {
 }
 
 .page-link {
-  color: #337ecc;
+  color: var(--bill-link);
   cursor: pointer;
 }
 
 .page-link:hover {
-  color: #409eff;
+  color: var(--bill-link-hover);
 }
 
 .amount-cell {
@@ -37,8 +61,8 @@ a {
 
 .section-block {
   margin-bottom: 12px;
-  background: #fff;
-  border: 1px solid #ebeef5;
+  background: var(--bill-panel-bg);
+  border: 1px solid var(--bill-panel-border);
 }
 
 .section-title {
@@ -70,4 +94,188 @@ a {
 .readonly-mask {
   pointer-events: none;
   opacity: 0.76;
+}
+
+.status-text--draft,
+.status-text--processing,
+.status-text--approved,
+.status-text--completed,
+.status-text--voided,
+.status-text--unknown {
+  display: inline-flex;
+  align-items: center;
+  min-height: 18px;
+  font-weight: 500;
+}
+
+.status-text--draft,
+.status-text--processing {
+  color: var(--bill-status-info);
+}
+
+.status-text--approved,
+.status-text--completed {
+  color: var(--bill-link);
+}
+
+.status-text--voided,
+.status-text--unknown {
+  color: var(--bill-status-muted);
+}
+
+.section-panel {
+  margin-bottom: 14px;
+  background: var(--bill-panel-bg);
+  border: 1px solid var(--bill-panel-border);
+  border-radius: 0;
+}
+
+.section-panel.is-collapsed {
+  margin-bottom: 10px;
+}
+
+.section-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--bill-panel-border);
+  background: var(--bill-panel-header-bg);
+  color: var(--bill-panel-header-text);
+}
+
+.section-panel__header.is-static {
+  cursor: default;
+}
+
+.section-panel__lead,
+.section-panel__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-panel__marker {
+  width: 3px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--bill-brand);
+}
+
+.section-panel__title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.section-panel__subtitle {
+  color: var(--bill-panel-subtle);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.section-panel__icon {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  color: var(--bill-panel-subtle);
+}
+
+.section-panel__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.section-panel__toggle:hover {
+  color: var(--bill-link);
+}
+
+.section-panel__toggle:focus-visible {
+  outline: 1px solid rgba(74, 120, 255, 0.45);
+  outline-offset: 1px;
+  border-radius: 4px;
+}
+
+.section-panel__body {
+  padding: 14px 16px 16px;
+  background: var(--bill-panel-bg);
+}
+
+.bill-list-dropdown {
+  border: 1px solid var(--bill-table-border);
+  border-radius: 10px;
+  box-shadow: var(--bill-shadow-soft);
+  padding: 6px;
+}
+
+.bill-list-dropdown .el-dropdown-menu {
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+}
+
+.bill-list-dropdown .el-dropdown-menu__item {
+  min-width: 104px;
+  border-radius: 8px;
+  color: #5f6b83;
+}
+
+.bill-list-dropdown .el-dropdown-menu__item:hover {
+  background: var(--bill-brand-soft);
+  color: var(--bill-link);
+}
+
+.bill-list-dropdown .el-dropdown-menu__item.is-disabled {
+  color: #b3bbca;
+}
+
+.bill-inline-table {
+  --el-table-border-color: var(--bill-table-border);
+  --el-table-header-bg-color: var(--bill-table-head);
+  --el-table-tr-bg-color: #fff;
+  --el-table-row-hover-bg-color: #f8fbff;
+  --el-table-header-text-color: #566277;
+  --el-table-text-color: #344054;
+  --el-table-bg-color: #fff;
+}
+
+.bill-inline-table :is(th.el-table__cell, td.el-table__cell) {
+  padding: 8px 0;
+}
+
+.bill-inline-table :is(.el-table__header-wrapper th.el-table__cell, .el-table__fixed-header-wrapper th.el-table__cell) {
+  background: var(--bill-table-head);
+}
+
+.bill-inline-table :is(.el-table__header-wrapper .cell, .el-table__fixed-header-wrapper .cell) {
+  font-weight: 500;
+}
+
+.section-panel__body .el-form {
+  --el-disabled-bg-color: #fff;
+  --el-disabled-border-color: var(--bill-field-border);
+  --el-disabled-text-color: var(--bill-field-text);
+}
+
+.section-panel__body :is(.el-input__wrapper, .el-textarea__inner, .el-select__wrapper, .el-tree-select__wrapper, .el-input-number__wrapper) {
+  background: var(--bill-field-bg);
+  box-shadow: 0 0 0 1px var(--bill-field-border) inset;
+}
+
+.section-panel__body .el-textarea__inner {
+  background: #fff;
+  border-color: var(--bill-field-border);
+}
+
+.section-panel__body :is(.el-input__inner, .el-select__placeholder, .el-select__selected-item, .el-tree-select__placeholder) {
+  color: var(--bill-field-text);
 }

@@ -2,6 +2,7 @@
 import { Delete, Plus, Refresh } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
+import SectionPanel from '@/components/SectionPanel.vue'
 import { projectOptions, reimCompanyOptions } from '@/constants/staticData'
 import { useReimBillStore } from '@/stores/reimBillStore'
 import type { ReimAllocationDTO } from '@/types/reimBill'
@@ -74,20 +75,24 @@ function splitEvenly() {
 </script>
 
 <template>
-  <section class="section-block">
-    <div class="section-title">
-      <span>费用归属及分摊</span>
-      <span class="muted-text">分摊金额：{{ formatMoney(store.main.allocationTotal) }}</span>
-    </div>
-    <div class="section-body">
-      <div v-if="!store.isReadonly" class="toolbar-line">
-        <span />
-        <div>
-          <el-button :icon="Refresh" size="small" @click="splitEvenly">均摊</el-button>
-          <el-button :icon="Plus" type="primary" size="small" @click="addAllocation">添加一行</el-button>
-        </div>
-      </div>
-      <el-table :data="store.allocations" border size="small">
+  <SectionPanel title="费用归属及分摊" :subtitle="`（分摊金额：${formatMoney(store.main.allocationTotal)}）`">
+    <template #header-actions>
+      <el-button
+        v-if="!store.isReadonly"
+        :icon="Refresh"
+        type="primary"
+        size="small"
+        class="split-button"
+        @click.stop="splitEvenly"
+      >
+        均摊
+      </el-button>
+    </template>
+    <div class="allocation-panel">
+      <el-table :data="store.allocations" border size="small" class="bill-inline-table allocation-table">
+        <el-table-column label="序号" width="54" align="center">
+          <template #default="{ $index }">{{ $index + 1 }}</template>
+        </el-table-column>
         <el-table-column label="费用归属" min-width="190">
           <template #default="{ row }">
             <el-select
@@ -142,12 +147,65 @@ function splitEvenly() {
         <el-table-column label="分摊金额" width="140" align="right">
           <template #default="{ row }">{{ formatMoney(row.allocationAmount) }}</template>
         </el-table-column>
-        <el-table-column v-if="!store.isReadonly" label="操作" width="90" align="center">
+        <el-table-column v-if="!store.isReadonly" label="操作" width="72" align="center">
           <template #default="{ $index }">
-            <el-button :icon="Delete" link type="danger" @click="deleteAllocation($index)">删除</el-button>
+            <el-button :icon="Delete" link type="primary" @click="deleteAllocation($index)" />
           </template>
         </el-table-column>
       </el-table>
+      <button v-if="!store.isReadonly" type="button" class="allocation-add-row" @click="addAllocation">
+        <el-icon><Plus /></el-icon>
+        <span>添加一行</span>
+      </button>
+      <div class="allocation-summary">
+        <span>合计</span>
+        <span class="allocation-summary__ratio">100.00%</span>
+        <span class="allocation-summary__amount">CNY {{ formatMoney(store.main.allocationTotal) }}</span>
+      </div>
     </div>
-  </section>
+  </SectionPanel>
 </template>
+
+<style scoped>
+.split-button {
+  min-width: 60px;
+}
+
+.allocation-panel {
+  display: grid;
+  gap: 0;
+}
+
+.allocation-add-row {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 40px;
+  border: 0;
+  border-left: 1px solid var(--bill-table-border);
+  border-right: 1px solid var(--bill-table-border);
+  border-bottom: 1px solid var(--bill-table-border);
+  background: #fff;
+  color: var(--bill-link);
+  cursor: pointer;
+}
+
+.allocation-summary {
+  display: grid;
+  grid-template-columns: 1fr 150px 140px;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--bill-table-border);
+  border-top: 0;
+  background: #fff8eb;
+}
+
+.allocation-summary__ratio,
+.allocation-summary__amount {
+  justify-self: end;
+  color: var(--bill-accent);
+  font-variant-numeric: tabular-nums;
+}
+</style>

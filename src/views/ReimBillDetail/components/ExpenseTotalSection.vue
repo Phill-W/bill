@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SectionPanel from '@/components/SectionPanel.vue'
 import { useReimBillStore } from '@/stores/reimBillStore'
 import { formatMoney } from '@/utils/money'
 
@@ -6,9 +7,8 @@ const store = useReimBillStore()
 </script>
 
 <template>
-  <section class="section-block">
-    <div class="section-title">费用合计</div>
-    <div class="section-body total-grid">
+  <SectionPanel title="费用合计">
+    <div class="total-grid">
       <div>
         <span>补助总金额</span>
         <strong>{{ formatMoney(store.main.subsidyTotal) }}</strong>
@@ -26,7 +26,7 @@ const store = useReimBillStore()
         <strong>{{ formatMoney(store.main.phoneAllowance) }}</strong>
       </div>
     </div>
-  </section>
+  </SectionPanel>
 </template>
 
 <style scoped>
@@ -42,12 +42,13 @@ const store = useReimBillStore()
   justify-content: space-between;
   height: 44px;
   padding: 0 12px;
-  background: #f7f9fc;
-  border: 1px solid #ebeef5;
+  background: #f8fbff;
+  border: 1px solid var(--bill-table-border);
 }
 
 strong {
   font-size: 16px;
+  color: #364257;
   font-variant-numeric: tabular-nums;
 }
 </style>

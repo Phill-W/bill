@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { CopyDocument, Delete, EditPen, Plus } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
 
+import SectionPanel from '@/components/SectionPanel.vue'
 import { useReimBillStore } from '@/stores/reimBillStore'
 import type { ReimItineraryDTO } from '@/types/reimBill'
 
@@ -38,16 +39,22 @@ async function handleDelete(row: ReimItineraryDTO) {
 </script>
 
 <template>
-  <section class="section-block">
-    <div class="section-title">
-      <span>补录行程</span>
-      <el-button v-if="!store.isReadonly" :icon="Plus" type="primary" size="small" @click="openCreate">
+  <SectionPanel title="补录行程">
+    <template #header-actions>
+      <el-button
+        v-if="!store.isReadonly"
+        :icon="Plus"
+        link
+        type="primary"
+        class="panel-action-link"
+        @click.stop="openCreate"
+      >
         补录行程
       </el-button>
-    </div>
-    <div class="section-body">
-      <el-table :data="store.itineraries" border size="small">
-        <el-table-column type="index" label="序号" width="60" align="center" />
+    </template>
+    <div class="itinerary-panel">
+      <el-table :data="store.itineraries" border size="small" class="bill-inline-table">
+        <el-table-column type="index" label="序号" width="54" align="center" />
         <el-table-column label="出行人" width="140">
           <template #default="{ row }">{{ row.travelerName }}({{ row.travelerNo }})</template>
         </el-table-column>
@@ -56,15 +63,32 @@ async function handleDelete(row: ReimItineraryDTO) {
         </el-table-column>
         <el-table-column prop="itineraryRoute" label="行程" width="140" />
         <el-table-column prop="itineraryInstructions" label="行程说明" show-overflow-tooltip />
-        <el-table-column v-if="!store.isReadonly" label="操作" width="160" align="center">
+        <el-table-column v-if="!store.isReadonly" label="操作" width="126" align="center">
           <template #default="{ row }">
-            <el-button :icon="EditPen" link type="primary" @click="openEdit(row)">编辑</el-button>
-            <el-button :icon="CopyDocument" link type="primary" @click="openCopy(row)">复制</el-button>
-            <el-button :icon="Delete" link type="danger" @click="handleDelete(row)">删除</el-button>
+            <div class="row-actions">
+              <el-button :icon="EditPen" link type="primary" @click="openEdit(row)" />
+              <el-button :icon="CopyDocument" link type="primary" @click="openCopy(row)" />
+              <el-button :icon="Delete" link type="primary" @click="handleDelete(row)" />
+            </div>
           </template>
         </el-table-column>
       </el-table>
     </div>
     <ItineraryDialog v-model:visible="dialogVisible" :editing="editing" :copy-mode="copyMode" />
-  </section>
+  </SectionPanel>
 </template>
+
+<style scoped>
+.panel-action-link {
+  font-weight: 500;
+}
+
+.itinerary-panel {
+  padding-top: 2px;
+}
+
+.row-actions {
+  display: inline-flex;
+  gap: 2px;
+}
+</style>

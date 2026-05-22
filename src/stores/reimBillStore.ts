@@ -2,7 +2,7 @@ import dayjs from 'dayjs'
 import { defineStore } from 'pinia'
 
 import { getReimBillDetail } from '@/api/reimBillApi'
-import { REIM_TYPE } from '@/constants/reimStatus'
+import { REIM_STATUS, REIM_TYPE, isReadonlyReimBill } from '@/constants/reimStatus'
 import { reimCompanyOptions } from '@/constants/staticData'
 import type {
   ReimAllocationDTO,
@@ -25,6 +25,8 @@ function createEmptyMain(): ReimMainDTO {
   return {
     reimTypeCode: REIM_TYPE.code,
     reimTypeName: REIM_TYPE.name,
+    statusCode: REIM_STATUS.DRAFT.code,
+    statusName: REIM_STATUS.DRAFT.name,
     submitDate: dayjs().format('YYYY-MM-DD'),
     reimbursementTitle: '',
     reimburserId: '',
@@ -75,7 +77,7 @@ export const useReimBillStore = defineStore('reimBill', {
   }),
 
   getters: {
-    isReadonly: (state) => state.main.statusCode === '2',
+    isReadonly: (state) => isReadonlyReimBill(state.main.statusCode, state.main.statusName),
   },
 
   actions: {
@@ -84,8 +86,8 @@ export const useReimBillStore = defineStore('reimBill', {
         this.applyDetail(copyData)
         this.main.id = null
         this.main.reimNo = null
-        this.main.statusCode = null
-        this.main.statusName = null
+        this.main.statusCode = REIM_STATUS.DRAFT.code
+        this.main.statusName = REIM_STATUS.DRAFT.name
         this.main.submitDate = dayjs().format('YYYY-MM-DD')
         return
       }

@@ -8,6 +8,8 @@ import {
 } from '@/constants/staticData'
 import { useReimBillStore } from '@/stores/reimBillStore'
 
+import SectionPanel from '@/components/SectionPanel.vue'
+
 const store = useReimBillStore()
 const businessTypeTree = buildBusinessTypeTree()
 
@@ -45,17 +47,16 @@ function onBusinessTypeChange(id: string) {
 </script>
 
 <template>
-  <section class="section-block">
-    <div class="section-title">基础信息</div>
-    <div class="section-body">
-      <el-form :model="store.main" label-width="104px" :disabled="store.isReadonly">
-        <el-row :gutter="18">
-          <el-col :span="12">
+  <SectionPanel title="基础信息">
+    <div class="basic-info-panel">
+      <el-form :model="store.main" label-width="96px" :disabled="store.isReadonly">
+        <div class="basic-info-layout">
+          <div class="basic-info-row basic-info-row--full">
             <el-form-item label="报销标题" required>
               <el-input v-model="store.main.reimbursementTitle" maxlength="500" show-word-limit />
             </el-form-item>
-          </el-col>
-          <el-col :span="12">
+          </div>
+          <div class="basic-info-row basic-info-row--triple">
             <el-form-item label="报销人" required>
               <el-select
                 v-model="store.main.reimburserId"
@@ -71,8 +72,6 @@ function onBusinessTypeChange(id: string) {
                 />
               </el-select>
             </el-form-item>
-          </el-col>
-          <el-col :span="12">
             <el-form-item label="报销部门" required>
               <el-select
                 v-model="store.main.reimDepartmentId"
@@ -88,8 +87,6 @@ function onBusinessTypeChange(id: string) {
                 />
               </el-select>
             </el-form-item>
-          </el-col>
-          <el-col :span="12">
             <el-form-item label="费用归属公司" required>
               <el-select
                 v-model="store.main.reimCompanyId"
@@ -105,8 +102,8 @@ function onBusinessTypeChange(id: string) {
                 />
               </el-select>
             </el-form-item>
-          </el-col>
-          <el-col :span="12">
+          </div>
+          <div class="basic-info-row basic-info-row--mixed">
             <el-form-item label="业务类型" required>
               <el-tree-select
                 v-model="store.main.businessTypeId"
@@ -117,14 +114,80 @@ function onBusinessTypeChange(id: string) {
                 @change="onBusinessTypeChange"
               />
             </el-form-item>
-          </el-col>
-          <el-col :span="12">
             <el-form-item label="出差事由" required>
-              <el-input v-model="store.main.businessTripReason" maxlength="500" show-word-limit />
+              <el-input
+                v-model="store.main.businessTripReason"
+                type="textarea"
+                maxlength="500"
+                :rows="2"
+                show-word-limit
+              />
             </el-form-item>
-          </el-col>
-        </el-row>
+          </div>
+        </div>
       </el-form>
     </div>
-  </section>
+  </SectionPanel>
 </template>
+
+<style scoped>
+.basic-info-panel {
+  padding-top: 2px;
+}
+
+.basic-info-layout {
+  display: grid;
+  gap: 16px;
+}
+
+.basic-info-row {
+  display: grid;
+  align-items: start;
+  gap: 18px;
+}
+
+.basic-info-row--full {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.basic-info-row--triple {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.basic-info-row--mixed {
+  grid-template-columns: 340px minmax(0, 1fr);
+}
+
+.basic-info-panel :deep(.el-form-item) {
+  margin-bottom: 0;
+}
+
+.basic-info-panel :deep(.el-form-item__label) {
+  color: #495468;
+}
+
+.basic-info-panel :deep(.el-form-item__content) {
+  min-width: 0;
+}
+
+.basic-info-panel :deep(.el-select),
+.basic-info-panel :deep(.el-tree-select),
+.basic-info-panel :deep(.el-input) {
+  width: 100%;
+}
+
+.basic-info-panel :deep(.el-textarea__inner) {
+  min-height: 72px;
+}
+
+@media (max-width: 1280px) {
+  .basic-info-row--triple,
+  .basic-info-row--mixed {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .basic-info-row--mixed :deep(.el-form-item:last-child) {
+    grid-column: 1 / -1;
+  }
+}
+</style>

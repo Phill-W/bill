@@ -2,6 +2,7 @@
 import { Delete } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
 
+import SectionPanel from '@/components/SectionPanel.vue'
 import { useReimBillStore } from '@/stores/reimBillStore'
 
 const store = useReimBillStore()
@@ -13,20 +14,20 @@ async function clearRemark() {
 </script>
 
 <template>
-  <section class="section-block">
-    <div class="section-title">
-      <span>备注信息</span>
+  <SectionPanel title="备注信息">
+    <template #header-actions>
       <el-button
         v-if="!store.isReadonly && store.main.remarks"
         :icon="Delete"
         link
-        type="danger"
-        @click="clearRemark"
+        type="primary"
+        class="remark-delete-btn"
+        @click.stop="clearRemark"
       >
         删除备注
       </el-button>
-    </div>
-    <div class="section-body">
+    </template>
+    <div class="remark-panel">
       <el-input
         v-model="store.main.remarks"
         :disabled="store.isReadonly"
@@ -34,8 +35,18 @@ async function clearRemark() {
         :rows="4"
         maxlength="1000"
         show-word-limit
-        placeholder="请输入备注"
+        placeholder="请输入"
       />
     </div>
-  </section>
+  </SectionPanel>
 </template>
+
+<style scoped>
+.remark-delete-btn {
+  font-weight: 500;
+}
+
+.remark-panel {
+  padding-top: 2px;
+}
+</style>
