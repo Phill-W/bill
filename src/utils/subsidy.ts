@@ -101,7 +101,13 @@ export function summarizeCalendarsToSubsidy(
   const scoped = calendars.filter((item) => item.clientSubsidyId === subsidy.clientSubsidyId)
   subsidy.applicationAmount = addMoney(scoped.map((item) => item.dailyStandardAmount))
   subsidy.subsidyAmount = addMoney(scoped.map((item) => item.dailyActualAmount))
-  subsidy.mealAllowance = addMoney(scoped.map((item) => item.mealExpensesAmount))
-  subsidy.transportationAllowance = addMoney(scoped.map((item) => item.trafficAmount))
-  subsidy.phoneAllowance = addMoney(scoped.map((item) => item.communicationAmount))
+  subsidy.mealAllowance = addMoney(
+    scoped.map((item) => (item.mealSelected === '1' ? item.mealExpensesAmount : 0)),
+  )
+  subsidy.transportationAllowance = addMoney(
+    scoped.map((item) => (item.trafficSelected === '1' ? item.trafficAmount : 0)),
+  )
+  subsidy.phoneAllowance = addMoney(
+    scoped.map((item) => (item.communicationSelected === '1' ? item.communicationAmount : 0)),
+  )
 }

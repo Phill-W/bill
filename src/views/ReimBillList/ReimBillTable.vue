@@ -1,7 +1,12 @@
 <script setup lang="ts">
-import { CopyDocument, Delete, EditPen, MoreFilled, View } from '@element-plus/icons-vue'
+import chartTreeMapIcon from '@/assets/icons/chart-tree-map-svgrepo-com.svg'
+import circleDotsVerticalIcon from '@/assets/icons/circle-dots-vertical-svgrepo-com.svg'
+import fileContractIcon from '@/assets/icons/file-contract-svgrepo-com.svg'
+import markerIcon from '@/assets/icons/marker-svgrepo-com.svg'
+import BillListActionIcon from '@/components/BillListActionIcon.vue'
+import { canEditListRow, getReimBillMenuActions } from '@/constants/reimBillListActions'
 
-import { canEditReimBill, getReimStatusClass, getReimStatusLabel } from '@/constants/reimStatus'
+import { getReimStatusClass, getReimStatusLabel } from '@/constants/reimStatus'
 import type { ReimBillListItem } from '@/types/reimBill'
 import { formatMoney } from '@/utils/money'
 
@@ -14,10 +19,14 @@ const emit = defineEmits<{
   detail: [row: ReimBillListItem]
   void: [row: ReimBillListItem]
   copy: [row: ReimBillListItem]
+  edit: [row: ReimBillListItem]
 }>()
 
-function canEditRow(row: ReimBillListItem) {
-  return canEditReimBill(row.statusCode, row.statusName)
+function handleMenuCommand(command: string, row: ReimBillListItem) {
+  if (command === 'detail') emit('detail', row)
+  if (command === 'edit') emit('edit', row)
+  if (command === 'void') emit('void', row)
+  if (command === 'copy') emit('copy', row)
 }
 </script>
 
@@ -28,39 +37,60 @@ function canEditRow(row: ReimBillListItem) {
     border
     height="calc(100vh - 206px)"
     size="small"
-    class="bill-list-table"
+    class="bill-list-table bill-inline-table"
   >
-    <el-table-column type="index" width="40" align="center" />
-    <el-table-column label="操作" width="96" align="center" fixed>
+    <el-table-column width="46" align="center">
+      <template #header>
+        <img
+          :src="chartTreeMapIcon"
+          alt="序号"
+          class="index-header-icon"
+          data-icon="chart-tree-map"
+        />
+      </template>
+      <template #default="{ $index }">
+        <span class="index-cell">{{ $index + 1 }}</span>
+      </template>
+    </el-table-column>
+    <el-table-column label="操作" width="112" align="center">
       <template #default="{ row }">
         <div class="table-actions">
-          <el-tooltip content="查看" placement="top">
-            <el-button
-              :icon="View"
-              link
-              size="small"
-              class="table-action-btn"
-              @click="emit('detail', row)"
+          <BillListActionIcon
+            :src="fileContractIcon"
+            alt="文件"
+            title="暂不可用"
+            action="file"
+            :disabled="true"
+          />
+          <BillListActionIcon
+            :src="markerIcon"
+            alt="编辑"
+            title="编辑"
+            action="edit"
+            :clickable="canEditListRow(row)"
+            :disabled="!canEditListRow(row)"
+            @click="emit('edit', row)"
+          />
+          <el-dropdown trigger="click" popper-class="bill-list-dropdown" @command="handleMenuCommand($event, row)">
+            <BillListActionIcon
+              :src="circleDotsVerticalIcon"
+              alt="更多操作"
+              title="更多操作"
+              action="more"
+              :clickable="true"
+              :rotate="90"
+              :use-tooltip="false"
             />
-          </el-tooltip>
-          <el-tooltip content="编辑" placement="top">
-            <el-button
-              :icon="EditPen"
-              link
-              size="small"
-              class="table-action-btn"
-              @click="emit('detail', row)"
-            />
-          </el-tooltip>
-          <el-dropdown trigger="click" popper-class="bill-list-dropdown">
-            <el-button :icon="MoreFilled" link size="small" class="table-action-btn" />
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item :icon="Delete" @click="emit('void', row)">删除</el-dropdown-item>
-                <el-dropdown-item disabled>手工推送</el-dropdown-item>
-                <el-dropdown-item :icon="CopyDocument" @click="emit('copy', row)"
-                  >复制</el-dropdown-item
+                <el-dropdown-item
+                  v-for="action in getReimBillMenuActions(row)"
+                  :key="action.key"
+                  :command="action.key"
+                  :disabled="action.disabled"
                 >
+                  {{ action.label }}
+                </el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -114,25 +144,37 @@ function canEditRow(row: ReimBillListItem) {
 </template>
 
 <style scoped>
+.index-header-icon {
+  width: 14px;
+  height: 14px;
+  display: block;
+  margin: 0 auto;
+  filter: invert(49%) sepia(61%) saturate(2408%) hue-rotate(210deg) brightness(100%) contrast(102%);
+}
+
+.index-cell {
+  color: #667085;
+}
+
 .table-actions {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-}
-
-.table-action-btn {
-  min-height: 20px;
-  padding: 0;
-  color: #a0a7b4;
-}
-
-.table-action-btn:hover {
-  color: #4a78ff;
+  gap: 5px;
+  min-width: 86px;
 }
 
 .status-text {
   font-size: 12px;
   font-weight: 500;
+}
+
+.bill-list-table :deep(.status-text--draft),
+.bill-list-table :deep(.status-text--processing),
+.bill-list-table :deep(.status-text--approved),
+.bill-list-table :deep(.status-text--completed),
+.bill-list-table :deep(.status-text--voided),
+.bill-list-table :deep(.status-text--unknown) {
+  color: #5b7cff;
 }
 </style>

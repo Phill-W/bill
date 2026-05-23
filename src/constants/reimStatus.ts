@@ -54,5 +54,6 @@ export function isReadonlyReimBill(statusCode?: string | null, statusName?: stri
 }
 
 export function getReimStatusClass(statusCode?: string | null, statusName?: string | null) {
-  return `status-text--${getReimStatusKey(statusCode, statusName)}`
+  const statusKey = getReimStatusKey(statusCode, statusName)
+  return `status-text--${statusKey} status-text--blue`
 }

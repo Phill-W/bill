@@ -135,6 +135,25 @@ describe('subsidy helpers', () => {
     expect(subsidy.mealAllowance).toBe(100)
     expect(subsidy.transportationAllowance).toBe(40)
   })
+
+  it('ignores unselected allowance amounts when summarizing calendars', () => {
+    const subsidy: ReimSubsidyDTO = buildSubsidyByItinerary(baseItinerary, baseMain)
+    const calendars: SubsidyCalendarDTO[] = buildCalendarsByItinerary(baseItinerary, subsidy)
+    const first = calendars[0]!
+
+    first.mealSelected = '0'
+    first.mealExpensesAmount = first.standardMealExpensesAmount
+    first.trafficSelected = '1'
+    first.trafficAmount = first.standardTrafficAmount
+    recalcCalendarRow(first)
+    summarizeCalendarsToSubsidy(subsidy, calendars)
+
+    expect(first.dailyStandardAmount).toBe(40)
+    expect(first.dailyActualAmount).toBe(40)
+    expect(subsidy.mealAllowance).toBe(0)
+    expect(subsidy.transportationAllowance).toBe(40)
+    expect(subsidy.subsidyAmount).toBe(40)
+  })
 })
 
 describe('allocation helpers', () => {

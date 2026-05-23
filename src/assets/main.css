@@ -108,19 +108,14 @@ a {
   font-weight: 500;
 }
 
+.status-text--blue,
 .status-text--draft,
-.status-text--processing {
-  color: var(--bill-status-info);
-}
-
+.status-text--processing,
 .status-text--approved,
-.status-text--completed {
-  color: var(--bill-link);
-}
-
+.status-text--completed,
 .status-text--voided,
 .status-text--unknown {
-  color: var(--bill-status-muted);
+  color: var(--bill-link);
 }
 
 .section-panel {
@@ -227,6 +222,7 @@ a {
   min-width: 104px;
   border-radius: 8px;
   color: #5f6b83;
+  font-size: 13px;
 }
 
 .bill-list-dropdown .el-dropdown-menu__item:hover {
