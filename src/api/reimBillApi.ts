@@ -5,6 +5,8 @@ import type {
   ReimBillListItem,
   ReimBillQuery,
   ReimBillSubmitDTO,
+  ReimItineraryDTO,
+  ReimItineraryPayload,
 } from '@/types/reimBill'
 
 export interface SubmitResult {
@@ -29,7 +31,7 @@ export function submitReimBill(data: ReimBillSubmitDTO) {
 }
 
 export function updateReimBill(id: string, data: ReimBillSubmitDTO) {
-  return request.put<SubmitResult>(`/api/v1/reim-bills/${id}/submit`, data)
+  return request.post<SubmitResult>(`/api/v1/reim-bills/${id}/submit`, data)
 }
 
 export function voidReimBill(id: string) {
@@ -42,4 +44,40 @@ export function deleteReimBill(id: string) {
 
 export function copyReimBill(id: string) {
   return request.post<ReimBillDetailDTO>(`/api/v1/reim-bills/${id}/copy`, {})
+}
+
+export function toReimItineraryPayload(itinerary: ReimItineraryDTO): ReimItineraryPayload {
+  return {
+    travelerId: itinerary.travelerId,
+    travelerNo: itinerary.travelerNo,
+    travelerName: itinerary.travelerName,
+    departureDate: itinerary.departureDate,
+    arrivalDate: itinerary.arrivalDate,
+    itineraryDays: itinerary.itineraryDays,
+    departureCity: itinerary.departureCity,
+    departureCityNo: itinerary.departureCityNo,
+    departureCityType: itinerary.departureCityType,
+    arrivingCity: itinerary.arrivingCity,
+    arrivingCityNo: itinerary.arrivingCityNo,
+    arrivingCityType: itinerary.arrivingCityType,
+    itineraryRoute: itinerary.itineraryRoute,
+    itineraryInstructions: itinerary.itineraryInstructions,
+    sortNo: itinerary.sortNo,
+  }
+}
+
+export function createReimItinerary(id: string, itinerary: ReimItineraryDTO) {
+  return request.post<boolean>(`/api/v1/reim-bills/${id}/itineraries`, {
+    itinerary: toReimItineraryPayload(itinerary),
+  })
+}
+
+export function updateReimItinerary(id: string, itineraryId: string, itinerary: ReimItineraryDTO) {
+  return request.post<boolean>(`/api/v1/reim-bills/${id}/itineraries/${itineraryId}/update`, {
+    itinerary: toReimItineraryPayload(itinerary),
+  })
+}
+
+export function deleteReimItinerary(id: string, itineraryId: string) {
+  return request.post<boolean>(`/api/v1/reim-bills/${id}/itineraries/${itineraryId}/delete`, {})
 }

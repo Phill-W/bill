@@ -113,6 +113,8 @@ export interface ReimItineraryDTO {
   sortNo: number
 }
 
+export type ReimItineraryPayload = Omit<ReimItineraryDTO, 'id' | 'clientItineraryId'>
+
 export interface ReimSubsidyDTO {
   id?: string | null
   clientSubsidyId: string

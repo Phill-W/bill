@@ -3,7 +3,6 @@ import { computed, reactive, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 
 import { cityOptions, employeeOptions } from '@/constants/staticData'
-import { useReimBillStore } from '@/stores/reimBillStore'
 import type { ReimItineraryDTO } from '@/types/reimBill'
 import { buildItinerary, type ItineraryFormValues, validateItinerary } from '@/utils/itinerary'
 
@@ -11,9 +10,13 @@ const visible = defineModel<boolean>('visible', { required: true })
 const props = defineProps<{
   editing?: ReimItineraryDTO | null
   copyMode?: boolean
+  saving?: boolean
+  existingItineraries: ReimItineraryDTO[]
+}>()
+const emit = defineEmits<{
+  save: [itinerary: ReimItineraryDTO]
 }>()
 
-const store = useReimBillStore()
 const form = reactive<ItineraryFormValues>({
   travelerId: '',
   departureCityNo: '',
@@ -52,14 +55,14 @@ watch(
 
 function handleSave() {
   try {
-    const itinerary = buildItinerary(form, store.itineraries.length + 1)
-    const error = validateItinerary(itinerary, store.itineraries)
+    const sortNo = props.editing && !props.copyMode ? props.editing.sortNo : props.existingItineraries.length + 1
+    const itinerary = buildItinerary(form, sortNo)
+    const error = validateItinerary(itinerary, props.existingItineraries)
     if (error) {
       ElMessage.error(error)
       return
     }
-    store.addOrUpdateItinerary(itinerary)
-    visible.value = false
+    emit('save', itinerary)
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : '行程保存失败')
   }
@@ -168,6 +171,7 @@ function handleSave() {
         <el-button
           class="itinerary-button itinerary-button--save"
           type="primary"
+          :loading="saving"
           @click="handleSave"
         >
           保存
