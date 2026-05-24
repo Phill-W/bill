@@ -35,19 +35,19 @@ function openCalendar(row: ReimSubsidyDTO) {
       </span>
     </div>
     <el-empty v-if="store.subsidies.length === 0" description="暂无补助信息，请先补录行程" />
-    <el-table v-else :data="store.subsidies" border size="small" class="bill-inline-table">
+    <el-table v-else :data="store.subsidies" border size="small" class="bill-inline-table subsidy-table">
       <el-table-column label="序号" width="54" align="center">
         <template #default="{ $index }">{{ $index + 1 }}</template>
       </el-table-column>
-      <el-table-column label="出行人" width="140">
+      <el-table-column label="出行人" min-width="140">
         <template #default="{ row }">{{ row.travelerName }}({{ row.travelerNo }})</template>
       </el-table-column>
-      <el-table-column label="出差日期" width="190">
+      <el-table-column label="出差日期" min-width="190">
         <template #default="{ row }">{{ row.departureDate }} 至 {{ row.arrivalDate }}</template>
       </el-table-column>
       <el-table-column prop="subsidyDays" label="补助天数" width="90" align="right" />
-      <el-table-column prop="itineraryRoute" label="行程" width="130" />
-      <el-table-column prop="subsidyCity" label="补贴城市" width="110" />
+      <el-table-column prop="itineraryRoute" label="行程" min-width="130" />
+      <el-table-column prop="subsidyCity" label="补贴城市" min-width="110" />
       <el-table-column label="申请金额" width="110" align="right">
         <template #default="{ row }">{{ formatMoney(row.applicationAmount) }}</template>
       </el-table-column>
@@ -80,5 +80,15 @@ function openCalendar(row: ReimSubsidyDTO) {
 .subsidy-tip__icon {
   margin-top: 2px;
   color: #ff9f1a;
+}
+
+.subsidy-table {
+  width: 100%;
+}
+
+.subsidy-table :deep(.el-table__inner-wrapper),
+.subsidy-table :deep(.el-table__body),
+.subsidy-table :deep(.el-table__header) {
+  width: 100% !important;
 }
 </style>

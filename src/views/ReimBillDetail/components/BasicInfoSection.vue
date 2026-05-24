@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
+import SectionPanel from '@/components/SectionPanel.vue'
 import {
   buildBusinessTypeTree,
   businessTypeOptions,
@@ -9,8 +10,6 @@ import {
   reimCompanyOptions,
 } from '@/constants/staticData'
 import { useReimBillStore } from '@/stores/reimBillStore'
-
-import SectionPanel from '@/components/SectionPanel.vue'
 import type { SelectOptionNode } from '@/types/reimBill'
 
 const store = useReimBillStore()
@@ -121,7 +120,7 @@ function onBusinessTypeChange(id: string) {
 <template>
   <SectionPanel title="基础信息">
     <div class="basic-info-panel">
-      <el-form :model="store.main" label-width="96px" :disabled="store.isReadonly">
+      <el-form :model="store.main" label-width="108px" :disabled="store.isReadonly">
         <div class="basic-info-layout">
           <div class="basic-info-row basic-info-row--full">
             <el-form-item label="报销标题" required>
@@ -186,15 +185,21 @@ function onBusinessTypeChange(id: string) {
                 @change="onBusinessTypeChange"
               />
             </el-form-item>
-            <el-form-item label="出差事由" required>
-              <el-input
-                v-model="store.main.businessTripReason"
-                type="textarea"
-                maxlength="500"
-                :rows="2"
-                show-word-limit
-              />
-            </el-form-item>
+            <div class="basic-info-row__reason">
+              <div class="basic-info-row__reason-label">
+                <span class="basic-info-row__reason-required">*</span>
+                <span>出差事由</span>
+              </div>
+              <el-form-item class="basic-info-row__reason-item" label-width="0" required>
+                <el-input
+                  v-model="store.main.businessTripReason"
+                  type="textarea"
+                  maxlength="500"
+                  :rows="2"
+                  show-word-limit
+                />
+              </el-form-item>
+            </div>
           </div>
         </div>
       </el-form>
@@ -227,7 +232,7 @@ function onBusinessTypeChange(id: string) {
 }
 
 .basic-info-row--mixed {
-  grid-template-columns: 340px minmax(0, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .basic-info-panel :deep(.el-form-item) {
@@ -236,6 +241,7 @@ function onBusinessTypeChange(id: string) {
 
 .basic-info-panel :deep(.el-form-item__label) {
   color: #495468;
+  white-space: nowrap;
 }
 
 .basic-info-panel :deep(.el-form-item__content) {
@@ -252,13 +258,43 @@ function onBusinessTypeChange(id: string) {
   min-height: 72px;
 }
 
+.basic-info-row__reason {
+  display: grid;
+  grid-column: 2 / 4;
+  grid-template-columns: 108px minmax(0, 1fr);
+  align-items: start;
+}
+
+.basic-info-row__reason-label {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  padding-top: 6px;
+  padding-right: 12px;
+  color: #495468;
+  white-space: nowrap;
+  line-height: 32px;
+}
+
+.basic-info-row__reason-required {
+  color: var(--el-color-danger);
+}
+
+.basic-info-row__reason-item {
+  margin-bottom: 0;
+}
+
+.basic-info-row__reason-item :deep(.el-form-item__content) {
+  margin-left: 0 !important;
+}
+
 @media (max-width: 1280px) {
   .basic-info-row--triple,
   .basic-info-row--mixed {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .basic-info-row--mixed :deep(.el-form-item:last-child) {
+  .basic-info-row__reason {
     grid-column: 1 / -1;
   }
 }

@@ -19,8 +19,8 @@ const businessTypeTree = buildBusinessTypeTree()
 </script>
 
 <template>
-  <el-form :model="queryForm" class="search-form" label-width="82px">
-    <el-row :gutter="20">
+  <el-form :model="queryForm" class="search-form" label-width="98px">
+    <el-row :gutter="20" align="bottom">
       <el-col :span="6">
         <el-form-item label="报销单号">
           <el-input v-model="queryForm.reimNo" placeholder="请输入" clearable />
@@ -104,9 +104,30 @@ const businessTypeTree = buildBusinessTypeTree()
 
 .search-form :deep(.el-form-item) {
   margin-bottom: 12px;
+  align-items: center;
+}
+
+.search-form :deep(.el-form-item__label) {
+  white-space: nowrap;
+}
+
+.search-form :deep(.el-form-item__content) {
+  min-height: 32px;
+}
+
+.search-form :deep(.el-input),
+.search-form :deep(.el-select),
+.search-form :deep(.el-tree-select) {
+  width: 100%;
+}
+
+.search-actions {
+  margin-bottom: 12px;
 }
 
 .search-actions :deep(.el-form-item__content) {
   justify-content: flex-end;
+  align-items: center;
+  min-height: 32px;
 }
 </style>
