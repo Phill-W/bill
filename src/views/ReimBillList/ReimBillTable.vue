@@ -10,10 +10,16 @@ import { getReimStatusClass, getReimStatusLabel } from '@/constants/reimStatus'
 import type { ReimBillListItem } from '@/types/reimBill'
 import { formatMoney } from '@/utils/money'
 
-defineProps<{
-  data: ReimBillListItem[]
-  loading: boolean
-}>()
+withDefaults(
+  defineProps<{
+    data: ReimBillListItem[]
+    loading: boolean
+    emptyDescription?: string
+  }>(),
+  {
+    emptyDescription: '暂无数据',
+  },
+)
 
 const emit = defineEmits<{
   detail: [row: ReimBillListItem]
@@ -37,6 +43,9 @@ function handleMenuCommand(command: string, row: ReimBillListItem) {
     size="small"
     class="bill-list-table bill-inline-table"
   >
+    <template #empty>
+      <el-empty v-if="!loading" :description="emptyDescription" />
+    </template>
     <el-table-column width="46" align="center">
       <template #header>
         <img
@@ -55,7 +64,7 @@ function handleMenuCommand(command: string, row: ReimBillListItem) {
         <div class="table-actions">
           <BillListActionIcon
             :src="fileContractIcon"
-            alt="文件"
+            alt="附件"
             title="暂不可用"
             action="file"
             :disabled="true"
@@ -174,5 +183,9 @@ function handleMenuCommand(command: string, row: ReimBillListItem) {
 .bill-list-table :deep(.status-text--voided),
 .bill-list-table :deep(.status-text--unknown) {
   color: #5b7cff;
+}
+
+.bill-list-table :deep(.el-empty) {
+  padding: 28px 0;
 }
 </style>

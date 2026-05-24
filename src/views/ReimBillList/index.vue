@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -9,45 +9,180 @@ import type { PageResult, ReimBillListItem, ReimBillQuery } from '@/types/reimBi
 import ReimBillTable from './ReimBillTable.vue'
 import SearchForm from './SearchForm.vue'
 
+const DEFAULT_QUERY: ReimBillQuery = {
+  pageNo: 1,
+  pageSize: 10,
+}
+
 const router = useRouter()
 const loading = ref(false)
 const rows = ref<ReimBillListItem[]>([])
 const total = ref(0)
+const hasLoadedOnce = ref(false)
+const requestSeq = ref(0)
+const suppressedPaginationChanges = ref(0)
+const lastSuccessfulRows = ref<ReimBillListItem[]>([])
+const lastSuccessfulTotal = ref(0)
+const lastSuccessfulQuery = ref<ReimBillQuery>({ ...DEFAULT_QUERY })
 
-const queryForm = reactive<ReimBillQuery>({
-  pageNo: 1,
-  pageSize: 10,
+let queryForm = reactive<ReimBillQuery>({
+  ...DEFAULT_QUERY,
 })
 
-async function loadList() {
+const hasFilters = computed(() =>
+  Boolean(
+    queryForm.reimNo ||
+      queryForm.reimbursementTitle ||
+      queryForm.businessTripReason ||
+      queryForm.reimCompanyId ||
+      queryForm.reimDepartmentId ||
+      queryForm.reimburserId ||
+      queryForm.businessTypeId ||
+      queryForm.statusCode,
+  ),
+)
+
+const emptyDescription = computed(() =>
+  hasFilters.value ? '暂无符合条件的数据，请调整筛选条件' : '暂无报销单',
+)
+
+const showPagination = computed(() => total.value > 0)
+
+function cloneQuery(query: ReimBillQuery): ReimBillQuery {
+  return {
+    pageNo: query.pageNo,
+    pageSize: query.pageSize,
+    reimNo: query.reimNo,
+    reimbursementTitle: query.reimbursementTitle,
+    businessTripReason: query.businessTripReason,
+    reimCompanyId: query.reimCompanyId,
+    reimDepartmentId: query.reimDepartmentId,
+    reimburserId: query.reimburserId,
+    businessTypeId: query.businessTypeId,
+    statusCode: query.statusCode,
+  }
+}
+
+function applyQuery(query: ReimBillQuery, options?: { silentPagination?: boolean }) {
+  if (
+    options?.silentPagination &&
+    (query.pageNo !== queryForm.pageNo || query.pageSize !== queryForm.pageSize)
+  ) {
+    suppressedPaginationChanges.value += 1
+  }
+  Object.assign(queryForm, cloneQuery(query))
+}
+
+function normalizeListResult(
+  res: PageResult<ReimBillListItem> | null | undefined,
+  fallbackQuery: ReimBillQuery,
+): PageResult<ReimBillListItem> {
+  const records = Array.isArray(res?.records) ? res.records : []
+  const totalValue = Number(res?.total)
+  const pageNoValue = Number(res?.pageNo)
+  const pageSizeValue = Number(res?.pageSize)
+
+  return {
+    pageNo: Number.isInteger(pageNoValue) && pageNoValue > 0 ? pageNoValue : fallbackQuery.pageNo,
+    pageSize: Number.isInteger(pageSizeValue) && pageSizeValue > 0 ? pageSizeValue : fallbackQuery.pageSize,
+    total: Number.isFinite(totalValue) && totalValue > 0 ? totalValue : 0,
+    records,
+  }
+}
+
+function snapshotSuccess(query: ReimBillQuery, result: PageResult<ReimBillListItem>) {
+  lastSuccessfulQuery.value = cloneQuery(query)
+  lastSuccessfulRows.value = [...result.records]
+  lastSuccessfulTotal.value = result.total
+}
+
+function applyResult(query: ReimBillQuery, result: PageResult<ReimBillListItem>) {
+  applyQuery(
+    {
+      ...cloneQuery(query),
+      pageNo: result.pageNo,
+      pageSize: result.pageSize,
+    },
+    { silentPagination: true },
+  )
+  rows.value = result.records
+  total.value = result.total
+}
+
+function rollbackToLastSuccess() {
+  applyQuery(lastSuccessfulQuery.value, { silentPagination: true })
+  rows.value = [...lastSuccessfulRows.value]
+  total.value = lastSuccessfulTotal.value
+}
+
+async function loadList(options?: { query?: ReimBillQuery; silentRollback?: boolean }) {
+  const currentRequest = ++requestSeq.value
+  const requestQuery = cloneQuery(options?.query ?? queryForm)
+
   loading.value = true
   try {
-    const res: PageResult<ReimBillListItem> = await queryReimBillList(queryForm)
-    rows.value = res.records
-    total.value = res.total
+    const raw = await queryReimBillList(requestQuery)
+    if (currentRequest !== requestSeq.value) return
+
+    const normalized = normalizeListResult(raw, requestQuery)
+    const lastPageNo = Math.max(1, Math.ceil(normalized.total / normalized.pageSize))
+    if (
+      normalized.total > 0 &&
+      normalized.records.length === 0 &&
+      normalized.pageNo > 1 &&
+      normalized.pageNo > lastPageNo
+    ) {
+      applyQuery(
+        {
+          ...requestQuery,
+          pageNo: lastPageNo,
+        },
+        { silentPagination: true },
+      )
+      await loadList({ query: { ...requestQuery, pageNo: lastPageNo }, silentRollback: true })
+      return
+    }
+
+    applyResult(requestQuery, normalized)
+    snapshotSuccess(cloneQuery(queryForm), normalized)
+  } catch {
+    if (currentRequest !== requestSeq.value) return
+    if (!options?.silentRollback) rollbackToLastSuccess()
   } finally {
-    loading.value = false
+    if (currentRequest === requestSeq.value) {
+      loading.value = false
+      hasLoadedOnce.value = true
+    }
   }
 }
 
 function handleSearch() {
-  queryForm.pageNo = 1
+  applyQuery(
+    {
+      ...cloneQuery(queryForm),
+      pageNo: 1,
+    },
+    { silentPagination: true },
+  )
   loadList()
 }
 
 function handleClear() {
-  Object.assign(queryForm, {
-    pageNo: 1,
-    pageSize: queryForm.pageSize,
-    reimNo: undefined,
-    reimbursementTitle: undefined,
-    businessTripReason: undefined,
-    reimCompanyId: undefined,
-    reimDepartmentId: undefined,
-    reimburserId: undefined,
-    businessTypeId: undefined,
-    statusCode: undefined,
-  })
+  applyQuery(
+    {
+      pageNo: 1,
+      pageSize: queryForm.pageSize,
+      reimNo: undefined,
+      reimbursementTitle: undefined,
+      businessTripReason: undefined,
+      reimCompanyId: undefined,
+      reimDepartmentId: undefined,
+      reimburserId: undefined,
+      businessTypeId: undefined,
+      statusCode: undefined,
+    },
+    { silentPagination: true },
+  )
   loadList()
 }
 
@@ -67,7 +202,15 @@ async function handleDelete(row: ReimBillListItem) {
   await ElMessageBox.confirm('确认删除该报销单吗？', '提示', { type: 'warning' })
   await deleteReimBill(row.id)
   ElMessage.success('删除成功')
-  if (rows.value.length === 1 && queryForm.pageNo > 1) queryForm.pageNo -= 1
+  if (rows.value.length === 1 && queryForm.pageNo > 1) {
+    applyQuery(
+      {
+        ...cloneQuery(queryForm),
+        pageNo: queryForm.pageNo - 1,
+      },
+      { silentPagination: true },
+    )
+  }
   loadList()
 }
 
@@ -77,7 +220,30 @@ async function handleCopy(row: ReimBillListItem) {
   router.push('/reim-bills/create?copy=1')
 }
 
-onMounted(loadList)
+function handlePaginationChange(pageNo: number, pageSize: number) {
+  if (suppressedPaginationChanges.value > 0) {
+    suppressedPaginationChanges.value -= 1
+    return
+  }
+  applyQuery({
+    ...cloneQuery(queryForm),
+    pageNo,
+    pageSize,
+  })
+  loadList()
+}
+
+function handleCurrentPageUpdate(pageNo: number) {
+  queryForm.pageNo = pageNo
+}
+
+function handlePageSizeUpdate(pageSize: number) {
+  queryForm.pageSize = pageSize
+}
+
+onMounted(() => {
+  loadList({ query: cloneQuery(queryForm), silentRollback: true })
+})
 </script>
 
 <template>
@@ -91,20 +257,26 @@ onMounted(loadList)
     <ReimBillTable
       :data="rows"
       :loading="loading"
+      :empty-description="hasLoadedOnce ? emptyDescription : ''"
       @detail="goDetail"
       @edit="goEdit"
       @delete="handleDelete"
       @copy="handleCopy"
     />
-    <div class="pagination-bar">
+    <div class="pagination-bar" :class="{ 'pagination-bar--hidden': !showPagination }">
       <el-pagination
-        v-model:current-page="queryForm.pageNo"
-        v-model:page-size="queryForm.pageSize"
+        v-if="showPagination"
+        :current-page="queryForm.pageNo"
+        :page-size="queryForm.pageSize"
         :total="total"
         :page-sizes="[10, 20, 50]"
+        :disabled="loading"
+        :pager-count="11"
         background
         layout="total, sizes, prev, pager, next, jumper"
-        @change="loadList"
+        @update:current-page="handleCurrentPageUpdate"
+        @update:page-size="handlePageSizeUpdate"
+        @change="handlePaginationChange"
       />
     </div>
   </main>
@@ -125,23 +297,45 @@ onMounted(loadList)
   background: #fff;
 }
 
+.pagination-bar--hidden {
+  justify-content: flex-end;
+}
+
 .pagination-bar :deep(.el-pagination) {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
   color: #667085;
   font-size: 13px;
   font-weight: 400;
 }
 
 .pagination-bar :deep(.el-pagination__total) {
-  margin-right: 6px;
+  margin-right: 10px;
   color: #667085;
 }
 
 .pagination-bar :deep(.el-pagination__sizes) {
-  margin-right: 8px;
+  margin-right: 12px;
+}
+
+.pagination-bar :deep(.el-pagination__sizes .el-select__wrapper) {
+  min-width: 84px;
+}
+
+.pagination-bar :deep(.el-pager) {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pagination-bar :deep(.btn-prev) {
+  margin-right: 2px;
+}
+
+.pagination-bar :deep(.btn-next) {
+  margin-left: 2px;
 }
 
 .pagination-bar :deep(.el-select .el-select__wrapper),
@@ -214,7 +408,7 @@ onMounted(loadList)
 }
 
 .pagination-bar :deep(.el-pagination__jump) {
-  margin-left: 8px;
+  margin-left: 12px;
   color: #667085;
 }
 
@@ -224,7 +418,7 @@ onMounted(loadList)
 
 .pagination-bar :deep(.el-pagination__editor.el-input) {
   width: 38px;
-  margin: 0 4px;
+  margin: 0 6px;
 }
 
 .pagination-bar :deep(.el-pagination .el-icon) {

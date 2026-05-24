@@ -14,7 +14,7 @@ function createRow(
   id: string,
   statusCode: string,
   statusName: string,
-  reimbursementTitle = `测试单据-${id}`,
+  reimbursementTitle = `娴嬭瘯鍗曟嵁-${id}`,
 ): ReimBillListItem {
   return {
     id,
@@ -22,21 +22,21 @@ function createRow(
     statusCode,
     statusName,
     reimTypeCode: 'TRAVEL_REIMBURSEMENT',
-    reimTypeName: '差旅费用报销单',
+    reimTypeName: '宸梾璐圭敤鎶ラ攢鍗?',
     reimburserId: 'employee-1',
     reimburserNo: '74541',
-    reimburserName: '徐年年',
+    reimburserName: '寰愬勾骞?',
     reimDepartmentId: 'department-1',
     reimDepartmentNo: '072001',
-    reimDepartmentName: '客户成功事业部',
+    reimDepartmentName: '瀹㈡埛鎴愬姛浜嬩笟閮?',
     reimCompanyId: 'company-1',
     reimCompanyNo: '0407',
-    reimCompanyName: '胜意科技北京分公司',
+    reimCompanyName: '鑳滄剰绉戞妧鍖椾含鍒嗗叕鍙?',
     businessTypeId: 'business-1',
     businessTypeNo: '10010010101',
-    businessTypeName: '日常办公',
+    businessTypeName: '鏃ュ父鍔炲叕',
     reimbursementTitle,
-    businessTripReason: '客户项目现场支持',
+    businessTripReason: '瀹㈡埛椤圭洰鐜板満鏀寔',
     subsidyTotal: 0,
     creationTime: '2026-05-22',
   }
@@ -46,7 +46,7 @@ describe('ReimBillTable', () => {
   it('renders with the bill list table shell and blue status class logic', () => {
     const wrapper = mount(ReimBillTable, {
       props: {
-        data: [createRow('1', '0', '草稿'), createRow('2', '10', '审批中')],
+        data: [createRow('1', '0', '鑽夌'), createRow('2', '10', '瀹℃壒涓?')],
         loading: false,
       },
       global: {
@@ -54,31 +54,44 @@ describe('ReimBillTable', () => {
       },
     })
 
-    expect(getReimStatusClass('0', '草稿')).toContain('status-text--blue')
-    expect(getReimStatusClass('10', '审批中')).toContain('status-text--blue')
+    expect(getReimStatusClass('0', '鑽夌')).toContain('status-text--blue')
+    expect(getReimStatusClass('10', '瀹℃壒涓?')).toContain('status-text--blue')
 
     const html = wrapper.html()
     expect(html).toContain('bill-list-table')
-    expect(html).not.toContain('label="操作" width="112" align="center" fixed')
+    expect(html).not.toContain('label="鎿嶄綔" width="112" align="center" fixed')
   })
 
   it('treats only draft rows as editable in the marker action', () => {
-    expect(canEditListRow(createRow('1', '0', '草稿'))).toBe(true)
-    expect(canEditListRow(createRow('2', '10', '审批中'))).toBe(false)
-    expect(canEditListRow(createRow('3', '20', '审批通过'))).toBe(false)
-    expect(canEditListRow(createRow('4', '1', '已完成'))).toBe(false)
-    expect(canEditListRow(createRow('5', '2', '已作废'))).toBe(false)
+    expect(canEditListRow(createRow('1', '0', '鑽夌'))).toBe(true)
+    expect(canEditListRow(createRow('2', '10', '瀹℃壒涓?'))).toBe(false)
+    expect(canEditListRow(createRow('3', '20', '瀹℃壒閫氳繃'))).toBe(false)
+    expect(canEditListRow(createRow('4', '1', '宸插畬鎴?'))).toBe(false)
+    expect(canEditListRow(createRow('5', '2', '宸蹭綔搴?'))).toBe(false)
   })
 
   it('keeps more-menu actions aligned with the backend list operations', () => {
     const draftActions = getReimBillMenuActions().map((item) => item.label)
     const processingActions = getReimBillMenuActions().map((item) => item.label)
-    const pushAction = getReimBillMenuActions().find(
-      (item) => item.label === '手工推送',
-    )
+    const pushAction = getReimBillMenuActions().find((item) => item.key === 'push')
 
     expect(draftActions).toEqual(['删除', '手工推送', '复制'])
     expect(processingActions).toEqual(['删除', '手工推送', '复制'])
     expect(pushAction?.disabled).toBe(true)
+  })
+
+  it('renders the provided empty description when no rows are available', () => {
+    const wrapper = mount(ReimBillTable, {
+      props: {
+        data: [],
+        loading: false,
+        emptyDescription: '暂无报销单',
+      },
+      global: {
+        plugins: [ElementPlus],
+      },
+    })
+
+    expect(wrapper.text()).toContain('暂无报销单')
   })
 })
