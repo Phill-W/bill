@@ -42,7 +42,7 @@ async function deleteAllocation(index: number) {
 }
 
 function onCompanyChange(row: ReimAllocationDTO, id: string) {
-  const item = reimCompanyOptions.find((option) => option.reimCompanyId === id)
+  const item = getCompanyOptions(row).find((option) => option.reimCompanyId === id)
   if (!item) return
   row.reimCompanyId = item.reimCompanyId
   row.reimCompanyNo = item.reimCompanyNo
@@ -50,10 +50,38 @@ function onCompanyChange(row: ReimAllocationDTO, id: string) {
 }
 
 function onProjectChange(row: ReimAllocationDTO, id: string | null) {
-  const item = projectOptions.find((option) => option.projectId === id)
+  const item = getProjectOptions(row).find((option) => option.projectId === id)
   row.projectId = item?.projectId || null
   row.projectNo = item?.projectNo || null
   row.projectName = item?.projectName || null
+}
+
+function getCompanyOptions(row: ReimAllocationDTO) {
+  if (!row.reimCompanyId || reimCompanyOptions.some((option) => option.reimCompanyId === row.reimCompanyId)) {
+    return reimCompanyOptions
+  }
+  return [
+    ...reimCompanyOptions,
+    {
+      reimCompanyId: row.reimCompanyId,
+      reimCompanyNo: row.reimCompanyNo,
+      reimCompanyName: row.reimCompanyName || row.reimCompanyId,
+    },
+  ]
+}
+
+function getProjectOptions(row: ReimAllocationDTO) {
+  if (!row.projectId || projectOptions.some((option) => option.projectId === row.projectId)) {
+    return projectOptions
+  }
+  return [
+    ...projectOptions,
+    {
+      projectId: row.projectId,
+      projectNo: row.projectNo || '',
+      projectName: row.projectName || row.projectId,
+    },
+  ]
 }
 
 function onRatioChange(row: ReimAllocationDTO, percentValue: number | undefined) {
@@ -103,7 +131,7 @@ function splitEvenly() {
               @change="(id: string) => onCompanyChange(row, id)"
             >
               <el-option
-                v-for="item in reimCompanyOptions"
+                v-for="item in getCompanyOptions(row)"
                 :key="item.reimCompanyId"
                 :label="item.reimCompanyName"
                 :value="item.reimCompanyId"
@@ -122,7 +150,7 @@ function splitEvenly() {
               @change="(id: string | null) => onProjectChange(row, id)"
             >
               <el-option
-                v-for="item in projectOptions"
+                v-for="item in getProjectOptions(row)"
                 :key="item.projectId"
                 :label="item.projectName"
                 :value="item.projectId"

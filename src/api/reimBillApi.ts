@@ -36,6 +36,10 @@ export function voidReimBill(id: string) {
   return request.post<SubmitResult>(`/api/v1/reim-bills/${id}/void`, {})
 }
 
+export function deleteReimBill(id: string) {
+  return request.post<boolean>(`/api/v1/reim-bills/${id}/delete`, {})
+}
+
 export function copyReimBill(id: string) {
   return request.post<ReimBillDetailDTO>(`/api/v1/reim-bills/${id}/copy`, {})
 }

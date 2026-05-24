@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+
 import {
   buildBusinessTypeTree,
   businessTypeOptions,
@@ -9,12 +11,83 @@ import {
 import { useReimBillStore } from '@/stores/reimBillStore'
 
 import SectionPanel from '@/components/SectionPanel.vue'
+import type { SelectOptionNode } from '@/types/reimBill'
 
 const store = useReimBillStore()
-const businessTypeTree = buildBusinessTypeTree()
+const staticBusinessTypeTree = buildBusinessTypeTree()
+
+const reimburserOptions = computed(() => {
+  if (
+    !store.main.reimburserId ||
+    employeeOptions.some((option) => option.reimburserId === store.main.reimburserId)
+  ) {
+    return employeeOptions
+  }
+  return [
+    ...employeeOptions,
+    {
+      reimburserId: store.main.reimburserId,
+      reimburserNo: store.main.reimburserNo,
+      reimburserName: store.main.reimburserName || store.main.reimburserId,
+    },
+  ]
+})
+
+const departmentSelectOptions = computed(() => {
+  if (
+    !store.main.reimDepartmentId ||
+    departmentOptions.some((option) => option.reimDepartmentId === store.main.reimDepartmentId)
+  ) {
+    return departmentOptions
+  }
+  return [
+    ...departmentOptions,
+    {
+      reimDepartmentId: store.main.reimDepartmentId,
+      reimDepartmentNo: store.main.reimDepartmentNo,
+      reimDepartmentName: store.main.reimDepartmentName || store.main.reimDepartmentId,
+    },
+  ]
+})
+
+const companySelectOptions = computed(() => {
+  if (
+    !store.main.reimCompanyId ||
+    reimCompanyOptions.some((option) => option.reimCompanyId === store.main.reimCompanyId)
+  ) {
+    return reimCompanyOptions
+  }
+  return [
+    ...reimCompanyOptions,
+    {
+      reimCompanyId: store.main.reimCompanyId,
+      reimCompanyNo: store.main.reimCompanyNo,
+      reimCompanyName: store.main.reimCompanyName || store.main.reimCompanyId,
+    },
+  ]
+})
+
+const businessTypeTree = computed(() => {
+  if (!store.main.businessTypeId || hasTreeValue(staticBusinessTypeTree, store.main.businessTypeId)) {
+    return staticBusinessTypeTree
+  }
+  return [
+    ...staticBusinessTypeTree,
+    {
+      label: store.main.businessTypeName || store.main.businessTypeId,
+      value: store.main.businessTypeId,
+      businessTypeNo: store.main.businessTypeNo,
+      businessTypeName: store.main.businessTypeName,
+    },
+  ]
+})
+
+function hasTreeValue(nodes: SelectOptionNode[], value: string): boolean {
+  return nodes.some((node) => node.value === value || hasTreeValue(node.children || [], value))
+}
 
 function onReimburserChange(id: string) {
-  const item = employeeOptions.find((option) => option.reimburserId === id)
+  const item = reimburserOptions.value.find((option) => option.reimburserId === id)
   if (!item) return
   store.main.reimburserId = item.reimburserId
   store.main.reimburserNo = item.reimburserNo
@@ -22,7 +95,7 @@ function onReimburserChange(id: string) {
 }
 
 function onDepartmentChange(id: string) {
-  const item = departmentOptions.find((option) => option.reimDepartmentId === id)
+  const item = departmentSelectOptions.value.find((option) => option.reimDepartmentId === id)
   if (!item) return
   store.main.reimDepartmentId = item.reimDepartmentId
   store.main.reimDepartmentNo = item.reimDepartmentNo
@@ -30,7 +103,7 @@ function onDepartmentChange(id: string) {
 }
 
 function onCompanyChange(id: string) {
-  const item = reimCompanyOptions.find((option) => option.reimCompanyId === id)
+  const item = companySelectOptions.value.find((option) => option.reimCompanyId === id)
   if (!item) return
   store.main.reimCompanyId = item.reimCompanyId
   store.main.reimCompanyNo = item.reimCompanyNo
@@ -39,10 +112,9 @@ function onCompanyChange(id: string) {
 
 function onBusinessTypeChange(id: string) {
   const item = businessTypeOptions.find((option) => option.businessTypeId === id)
-  if (!item) return
-  store.main.businessTypeId = item.businessTypeId
-  store.main.businessTypeNo = item.businessTypeNo
-  store.main.businessTypeName = item.businessTypeName
+  store.main.businessTypeId = item?.businessTypeId || id
+  store.main.businessTypeNo = item?.businessTypeNo || store.main.businessTypeNo
+  store.main.businessTypeName = item?.businessTypeName || store.main.businessTypeName
 }
 </script>
 
@@ -65,7 +137,7 @@ function onBusinessTypeChange(id: string) {
                 @change="onReimburserChange"
               >
                 <el-option
-                  v-for="item in employeeOptions"
+                  v-for="item in reimburserOptions"
                   :key="item.reimburserId"
                   :label="`${item.reimburserName}(${item.reimburserNo})`"
                   :value="item.reimburserId"
@@ -80,7 +152,7 @@ function onBusinessTypeChange(id: string) {
                 @change="onDepartmentChange"
               >
                 <el-option
-                  v-for="item in departmentOptions"
+                  v-for="item in departmentSelectOptions"
                   :key="item.reimDepartmentId"
                   :label="`${item.reimDepartmentName}(${item.reimDepartmentNo})`"
                   :value="item.reimDepartmentId"
@@ -95,7 +167,7 @@ function onBusinessTypeChange(id: string) {
                 @change="onCompanyChange"
               >
                 <el-option
-                  v-for="item in reimCompanyOptions"
+                  v-for="item in companySelectOptions"
                   :key="item.reimCompanyId"
                   :label="item.reimCompanyName"
                   :value="item.reimCompanyId"

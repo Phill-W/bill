@@ -3,7 +3,7 @@ import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
-import { copyReimBill, queryReimBillList, voidReimBill } from '@/api/reimBillApi'
+import { copyReimBill, deleteReimBill, queryReimBillList } from '@/api/reimBillApi'
 import type { PageResult, ReimBillListItem, ReimBillQuery } from '@/types/reimBill'
 
 import ReimBillTable from './ReimBillTable.vue'
@@ -63,10 +63,11 @@ function goEdit(row: ReimBillListItem) {
   router.push(`/reim-bills/detail/${row.id}`)
 }
 
-async function handleVoid(row: ReimBillListItem) {
-  await ElMessageBox.confirm('确认作废该报销单吗？', '提示', { type: 'warning' })
-  await voidReimBill(row.id)
-  ElMessage.success('作废成功')
+async function handleDelete(row: ReimBillListItem) {
+  await ElMessageBox.confirm('确认删除该报销单吗？', '提示', { type: 'warning' })
+  await deleteReimBill(row.id)
+  ElMessage.success('删除成功')
+  if (rows.value.length === 1 && queryForm.pageNo > 1) queryForm.pageNo -= 1
   loadList()
 }
 
@@ -92,7 +93,7 @@ onMounted(loadList)
       :loading="loading"
       @detail="goDetail"
       @edit="goEdit"
-      @void="handleVoid"
+      @delete="handleDelete"
       @copy="handleCopy"
     />
     <div class="pagination-bar">

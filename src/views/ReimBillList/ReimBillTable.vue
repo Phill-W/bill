@@ -17,15 +17,13 @@ defineProps<{
 
 const emit = defineEmits<{
   detail: [row: ReimBillListItem]
-  void: [row: ReimBillListItem]
+  delete: [row: ReimBillListItem]
   copy: [row: ReimBillListItem]
   edit: [row: ReimBillListItem]
 }>()
 
 function handleMenuCommand(command: string, row: ReimBillListItem) {
-  if (command === 'detail') emit('detail', row)
-  if (command === 'edit') emit('edit', row)
-  if (command === 'void') emit('void', row)
+  if (command === 'delete') emit('delete', row)
   if (command === 'copy') emit('copy', row)
 }
 </script>
@@ -84,7 +82,7 @@ function handleMenuCommand(command: string, row: ReimBillListItem) {
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item
-                  v-for="action in getReimBillMenuActions(row)"
+                  v-for="action in getReimBillMenuActions()"
                   :key="action.key"
                   :command="action.key"
                   :disabled="action.disabled"

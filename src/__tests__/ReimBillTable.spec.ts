@@ -70,11 +70,15 @@ describe('ReimBillTable', () => {
     expect(canEditListRow(createRow('5', '2', '已作废'))).toBe(false)
   })
 
-  it('splits more-menu actions by draft and non-draft states', () => {
-    const draftActions = getReimBillMenuActions(createRow('1', '0', '草稿')).map((item) => item.label)
-    const processingActions = getReimBillMenuActions(createRow('2', '10', '审批中')).map((item) => item.label)
+  it('keeps more-menu actions aligned with the backend list operations', () => {
+    const draftActions = getReimBillMenuActions().map((item) => item.label)
+    const processingActions = getReimBillMenuActions().map((item) => item.label)
+    const pushAction = getReimBillMenuActions().find(
+      (item) => item.label === '手工推送',
+    )
 
-    expect(draftActions).toEqual(['查看', '编辑', '作废', '复制', '手工推送'])
-    expect(processingActions).toEqual(['查看', '复制', '手工推送'])
+    expect(draftActions).toEqual(['删除', '手工推送', '复制'])
+    expect(processingActions).toEqual(['删除', '手工推送', '复制'])
+    expect(pushAction?.disabled).toBe(true)
   })
 })
