@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import ElementPlus, { ElMessageBox } from 'element-plus'
 import { createPinia, setActivePinia } from 'pinia'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 
 import { useReimBillStore } from '@/stores/reimBillStore'
 import FooterActions from '@/views/ReimBillDetail/components/FooterActions.vue'
@@ -37,6 +37,7 @@ vi.mock('@/api/reimBillApi', () => ({
 
 describe('FooterActions', () => {
   beforeEach(() => {
+    vi.useFakeTimers()
     setActivePinia(createPinia())
     routeMock.path = '/reim-bills/create'
     routeMock.params = {}
@@ -44,6 +45,16 @@ describe('FooterActions', () => {
     routerMock.push.mockResolvedValue(undefined)
     routerMock.replace.mockResolvedValue(undefined)
   })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  async function settleActions() {
+    await flushPromises()
+    await vi.runAllTimersAsync()
+    await flushPromises()
+  }
 
   it('requires a title before saving a draft', async () => {
     const store = useReimBillStore()
@@ -76,7 +87,9 @@ describe('FooterActions', () => {
       },
     })
 
-    await (wrapper.vm as unknown as { handleSaveDraft: () => Promise<void> }).handleSaveDraft()
+    const action = (wrapper.vm as unknown as { handleSaveDraft: () => Promise<void> }).handleSaveDraft()
+    await settleActions()
+    await action
 
     expect(apiMock.createReimBillDraft).toHaveBeenCalled()
     expect(routerMock.replace).toHaveBeenCalledWith('/reim-bills/detail/bill-1')
@@ -102,7 +115,7 @@ describe('FooterActions', () => {
   it('can discard unsaved changes when closing a draft page', async () => {
     const store = useReimBillStore()
     store.initCreate()
-    store.main.reimbursementTitle = '待丢弃草稿'
+    store.main.reimbursementTitle = '待提交草稿'
     vi.spyOn(ElMessageBox, 'confirm').mockRejectedValue('cancel')
     const discardSpy = vi.spyOn(store, 'discardUnsavedChanges')
     const wrapper = mount(FooterActions, {
@@ -114,6 +127,113 @@ describe('FooterActions', () => {
     await (wrapper.vm as unknown as { handleClose: () => Promise<void> }).handleClose()
 
     expect(discardSpy).toHaveBeenCalled()
+    expect(routerMock.push).toHaveBeenCalledWith('/reim-bills')
+  })
+
+  it('locks the footer while saving a draft to avoid duplicate submissions', async () => {
+    const store = useReimBillStore()
+    store.initCreate()
+    store.main.reimbursementTitle = '杭州出差报销'
+    const deferred = new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          id: 'bill-1',
+          reimNo: 'BX202605240001',
+          statusCode: '0',
+          statusName: '草稿',
+        })
+      }, 1)
+    })
+    const loadDetailSpy = vi.spyOn(store, 'loadDetail').mockResolvedValue(undefined)
+    apiMock.createReimBillDraft.mockReturnValue(deferred)
+    const wrapper = mount(FooterActions, {
+      global: {
+        plugins: [ElementPlus],
+      },
+    })
+
+    const buttons = wrapper.findAll('button')
+    await buttons[1]?.trigger('click')
+
+    expect(wrapper.get('.footer-actions').attributes('data-state')).toBe('busy')
+    expect(apiMock.createReimBillDraft).toHaveBeenCalledTimes(1)
+
+    await buttons[1]?.trigger('click')
+    expect(apiMock.createReimBillDraft).toHaveBeenCalledTimes(1)
+
+    await settleActions()
+    await flushPromises()
+    expect(loadDetailSpy).toHaveBeenCalledWith('bill-1')
+    expect(wrapper.get('.footer-actions').attributes('data-state')).toBe('idle')
+  })
+
+  it('shows submit loading and prevents duplicate submit requests', async () => {
+    const store = useReimBillStore()
+    store.initCreate()
+    store.main.reimbursementTitle = '杭州出差报销'
+    store.main.reimburserId = 'employee-1'
+    store.main.reimDepartmentId = 'department-1'
+    store.main.reimCompanyId = 'company-1'
+    store.main.businessTypeId = 'business-1'
+    store.main.businessTripReason = '出差'
+    store.allocations = [
+      {
+        id: null,
+        clientAllocationId: 'allocation-1',
+        reimCompanyId: 'company-1',
+        reimDepartmentId: '',
+        reimDepartmentName: '',
+        projectId: '',
+        projectName: '',
+        fundType: '1',
+        allocationRatio: 1,
+        allocationAmount: 0,
+        remarks: '',
+        sortNo: 1,
+      },
+    ]
+    store.itineraries = [
+      {
+        id: null,
+        clientItineraryId: 'itinerary-1',
+        travelerId: 'employee-1',
+        travelerNo: '74541',
+        travelerName: '徐年年',
+        departureDate: '2026-05-20',
+        arrivalDate: '2026-05-21',
+        itineraryDays: 2,
+        departureCity: '武汉',
+        departureCityNo: '027',
+        departureCityType: '1',
+        arrivingCity: '北京',
+        arrivingCityNo: '010',
+        arrivingCityType: '1',
+        itineraryRoute: '武汉-北京',
+        itineraryInstructions: '出差',
+        sortNo: 1,
+      },
+    ]
+    const deferred = new Promise((resolve) => {
+      setTimeout(() => resolve(true), 1)
+    })
+    apiMock.submitReimBill.mockReturnValue(deferred)
+    const wrapper = mount(FooterActions, {
+      global: {
+        plugins: [ElementPlus],
+      },
+    })
+
+    const buttons = wrapper.findAll('button')
+    await buttons[2]?.trigger('click')
+
+    expect(wrapper.get('.footer-actions').attributes('data-state')).toBe('busy')
+    expect(apiMock.submitReimBill).toHaveBeenCalledTimes(1)
+
+    await buttons[2]?.trigger('click')
+    expect(apiMock.submitReimBill).toHaveBeenCalledTimes(1)
+
+    await settleActions()
+    await flushPromises()
     expect(routerMock.push).toHaveBeenCalledWith('/reim-bills')
   })
 })

@@ -17,6 +17,7 @@ const props = defineProps<{
 
 const store = useReimBillStore()
 const calendarList = ref<SubsidyCalendarDTO[]>([])
+const saving = ref(false)
 
 const currentItinerary = computed(() =>
   store.itineraries.find((item) => item.clientItineraryId === props.subsidy?.clientItineraryId),
@@ -162,14 +163,22 @@ function validateAmount(row: SubsidyCalendarDTO) {
   recalcCalendarRow(row)
 }
 
-function handleSave() {
-  if (!props.subsidy) return
+async function handleSave() {
+  if (!props.subsidy || saving.value) return
+  saving.value = true
   calendarList.value.forEach((row) => {
     normalizeUnselectedAmounts(row)
     recalcCalendarRow(row)
   })
-  store.saveSubsidyCalendars(props.subsidy.clientSubsidyId, calendarList.value)
-  visible.value = false
+  try {
+    store.saveSubsidyCalendars(props.subsidy.clientSubsidyId, calendarList.value)
+    await new Promise((resolve) => {
+      window.setTimeout(resolve, 160)
+    })
+    visible.value = false
+  } finally {
+    saving.value = false
+  }
 }
 </script>
 
@@ -381,9 +390,9 @@ function handleSave() {
     </div>
 
     <template #footer>
-      <div class="calendar-dialog-footer">
-        <el-button class="calendar-cancel-button" @click="visible = false">取消</el-button>
-        <el-button class="calendar-confirm-button" type="primary" @click="handleSave">确认</el-button>
+      <div class="calendar-dialog-footer" :data-state="saving ? 'busy' : 'idle'">
+        <el-button class="calendar-cancel-button" :disabled="saving" @click="visible = false">取消</el-button>
+        <el-button class="calendar-confirm-button" type="primary" :loading="saving" @click="handleSave">确认</el-button>
       </div>
     </template>
   </el-dialog>
@@ -731,6 +740,11 @@ function handleSave() {
   gap: 12px;
   height: 44px;
   background: #fff;
+  transition: box-shadow 0.18s ease-out;
+}
+
+.calendar-dialog-footer[data-state='busy'] {
+  box-shadow: 0 -8px 18px rgba(31, 47, 61, 0.06);
 }
 
 .calendar-cancel-button,

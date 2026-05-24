@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -12,12 +12,25 @@ import {
 import { useReimBillStore } from '@/stores/reimBillStore'
 import { validateSubmit } from '@/utils/validate'
 
+const ACTION_FEEDBACK_DELAY_MS = 160
+
 const store = useReimBillStore()
 const route = useRoute()
 const router = useRouter()
 
 const isCreate = computed(() => route.path.includes('/create'))
 const billId = computed(() => String(route.params.id || ''))
+const savingDraft = ref(false)
+const submitting = ref(false)
+const closingWithSave = ref(false)
+
+const actionLocked = computed(() => savingDraft.value || submitting.value || closingWithSave.value)
+
+function waitForActionFeedback() {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ACTION_FEEDBACK_DELAY_MS)
+  })
+}
 
 function validateDraftBeforeSave() {
   const title = store.main.reimbursementTitle?.trim()
@@ -33,29 +46,47 @@ function validateDraftBeforeSave() {
 }
 
 async function saveDraft(options?: { closeAfterSave?: boolean }) {
+  if (actionLocked.value) {
+    return false
+  }
   if (!validateDraftBeforeSave()) {
     return false
   }
 
-  const payload = store.buildSubmitPayload()
-  const result = isCreate.value
-    ? await createReimBillDraft(payload)
-    : await updateReimBillDraft(billId.value, payload)
-
-  if (isCreate.value) {
-    await router.replace(`/reim-bills/detail/${result.id}`)
-  }
-
-  await store.loadDetail(result.id)
-  ElMessage.success(options?.closeAfterSave ? '草稿已保存并关闭' : '草稿已保存')
-
   if (options?.closeAfterSave) {
-    await router.push('/reim-bills')
+    closingWithSave.value = true
+  } else {
+    savingDraft.value = true
   }
-  return true
+
+  try {
+    const payload = store.buildSubmitPayload()
+    const result = isCreate.value
+      ? await createReimBillDraft(payload)
+      : await updateReimBillDraft(billId.value, payload)
+
+    if (isCreate.value) {
+      await router.replace(`/reim-bills/detail/${result.id}`)
+    }
+
+    await store.loadDetail(result.id)
+    ElMessage.success(options?.closeAfterSave ? '草稿已保存并关闭' : '草稿已保存')
+    await waitForActionFeedback()
+
+    if (options?.closeAfterSave) {
+      await router.push('/reim-bills')
+    }
+    return true
+  } finally {
+    savingDraft.value = false
+    closingWithSave.value = false
+  }
 }
 
 async function handleClose() {
+  if (actionLocked.value) {
+    return
+  }
   if (!store.hasUnsavedChanges) {
     await router.push('/reim-bills')
     return
@@ -84,6 +115,9 @@ async function handleSaveDraft() {
 }
 
 async function handleSubmit() {
+  if (actionLocked.value) {
+    return
+  }
   const payload = store.buildSubmitPayload()
   const errors = validateSubmit(payload)
   if (errors.length) {
@@ -91,21 +125,44 @@ async function handleSubmit() {
     return
   }
 
-  if (isCreate.value) {
-    await submitReimBill(payload)
-  } else {
-    await updateReimBill(billId.value, payload)
+  submitting.value = true
+  try {
+    if (isCreate.value) {
+      await submitReimBill(payload)
+    } else {
+      await updateReimBill(billId.value, payload)
+    }
+    ElMessage.success('提交成功')
+    await waitForActionFeedback()
+    await router.push('/reim-bills')
+  } finally {
+    submitting.value = false
   }
-  ElMessage.success('提交成功')
-  await router.push('/reim-bills')
 }
 </script>
 
 <template>
-  <footer class="footer-actions">
-    <el-button @click="handleClose">关闭</el-button>
-    <el-button v-if="!store.isReadonly" @click="handleSaveDraft">保存草稿</el-button>
-    <el-button v-if="!store.isReadonly" type="primary" @click="handleSubmit">提交</el-button>
+  <footer class="footer-actions" :data-state="actionLocked ? 'busy' : 'idle'">
+    <el-button :disabled="actionLocked" @click="handleClose">
+      {{ closingWithSave ? '保存中...' : '关闭' }}
+    </el-button>
+    <el-button
+      v-if="!store.isReadonly"
+      :loading="savingDraft || closingWithSave"
+      :disabled="actionLocked"
+      @click="handleSaveDraft"
+    >
+      保存草稿
+    </el-button>
+    <el-button
+      v-if="!store.isReadonly"
+      type="primary"
+      :loading="submitting"
+      :disabled="actionLocked && !submitting"
+      @click="handleSubmit"
+    >
+      提交
+    </el-button>
   </footer>
 </template>
 
@@ -121,5 +178,12 @@ async function handleSubmit() {
   padding-top: 10px;
   background: #fff;
   border-top: 1px solid #dcdfe6;
+  transition:
+    box-shadow 0.18s ease-out,
+    transform 0.18s ease-out;
+}
+
+.footer-actions[data-state='busy'] {
+  box-shadow: 0 -8px 20px rgba(31, 47, 61, 0.08);
 }
 </style>

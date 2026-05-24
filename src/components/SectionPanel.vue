@@ -56,8 +56,15 @@ function toggleExpanded() {
         </button>
       </span>
     </header>
-    <div v-show="expanded" class="section-panel__body" :class="bodyClass">
-      <slot />
-    </div>
+    <transition name="section-panel-collapse">
+      <div
+        v-show="expanded"
+        class="section-panel__body"
+        :class="bodyClass"
+        data-state="expanded-body"
+      >
+        <slot />
+      </div>
+    </transition>
   </section>
 </template>

@@ -24,6 +24,9 @@
   --bill-field-bg: #f8f8f9;
   --bill-field-border: #dfe4ec;
   --bill-field-text: #344054;
+  --bill-motion-duration-fast: 0.18s;
+  --bill-motion-duration-medium: 0.22s;
+  --bill-motion-ease: ease-out;
 }
 
 html,
@@ -188,6 +191,9 @@ a {
   background: transparent;
   color: inherit;
   cursor: pointer;
+  transition:
+    color var(--bill-motion-duration-fast) var(--bill-motion-ease),
+    transform var(--bill-motion-duration-fast) var(--bill-motion-ease);
 }
 
 .section-panel__toggle:hover {
@@ -203,6 +209,33 @@ a {
 .section-panel__body {
   padding: 14px 16px 16px;
   background: var(--bill-panel-bg);
+}
+
+.section-panel-collapse-enter-active,
+.section-panel-collapse-leave-active {
+  overflow: hidden;
+  transition:
+    opacity var(--bill-motion-duration-medium) var(--bill-motion-ease),
+    transform var(--bill-motion-duration-medium) var(--bill-motion-ease),
+    max-height var(--bill-motion-duration-medium) var(--bill-motion-ease),
+    padding-top var(--bill-motion-duration-medium) var(--bill-motion-ease),
+    padding-bottom var(--bill-motion-duration-medium) var(--bill-motion-ease);
+}
+
+.section-panel-collapse-enter-from,
+.section-panel-collapse-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.section-panel-collapse-enter-to,
+.section-panel-collapse-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+  max-height: 2000px;
 }
 
 .bill-list-dropdown {

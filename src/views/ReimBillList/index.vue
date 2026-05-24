@@ -263,21 +263,29 @@ onMounted(() => {
       @delete="handleDelete"
       @copy="handleCopy"
     />
-    <div class="pagination-bar" :class="{ 'pagination-bar--hidden': !showPagination }">
-      <el-pagination
-        v-if="showPagination"
-        :current-page="queryForm.pageNo"
-        :page-size="queryForm.pageSize"
-        :total="total"
-        :page-sizes="[10, 20, 50]"
-        :disabled="loading"
-        :pager-count="11"
-        background
-        layout="total, sizes, prev, pager, next, jumper"
-        @update:current-page="handleCurrentPageUpdate"
-        @update:page-size="handlePageSizeUpdate"
-        @change="handlePaginationChange"
-      />
+    <div class="pagination-shell">
+      <transition name="pagination-fade">
+        <div
+          v-if="showPagination"
+          class="pagination-bar"
+          :class="{ 'pagination-bar--loading': loading }"
+          data-state="visible"
+        >
+          <el-pagination
+            :current-page="queryForm.pageNo"
+            :page-size="queryForm.pageSize"
+            :total="total"
+            :page-sizes="[10, 20, 50]"
+            :disabled="loading"
+            :pager-count="11"
+            background
+            layout="total, sizes, prev, pager, next, jumper"
+            @update:current-page="handleCurrentPageUpdate"
+            @update:page-size="handlePageSizeUpdate"
+            @change="handlePaginationChange"
+          />
+        </div>
+      </transition>
     </div>
   </main>
 </template>
@@ -288,6 +296,10 @@ onMounted(() => {
   background: #fff;
 }
 
+.pagination-shell {
+  min-height: 56px;
+}
+
 .pagination-bar {
   display: flex;
   align-items: center;
@@ -295,10 +307,26 @@ onMounted(() => {
   min-height: 40px;
   padding: 8px 18px;
   background: #fff;
+  transition:
+    opacity 0.18s ease-out,
+    transform 0.18s ease-out;
 }
 
-.pagination-bar--hidden {
-  justify-content: flex-end;
+.pagination-bar--loading {
+  opacity: 0.88;
+}
+
+.pagination-fade-enter-active,
+.pagination-fade-leave-active {
+  transition:
+    opacity 0.18s ease-out,
+    transform 0.18s ease-out;
+}
+
+.pagination-fade-enter-from,
+.pagination-fade-leave-to {
+  opacity: 0;
+  transform: translateY(6px);
 }
 
 .pagination-bar :deep(.el-pagination) {

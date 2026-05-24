@@ -408,4 +408,17 @@ describe('ReimBillList', () => {
     expect(getActivePage(wrapper)).toBe(3)
     expect(wrapper.text()).toContain('RCBX2026050003')
   })
+
+  it('keeps pagination visibility rules while rendering the transition shell', async () => {
+    apiMock.queryReimBillList.mockResolvedValueOnce(
+      createPageResult([createRow('1')], { total: 30, pageNo: 1, pageSize: 10 }),
+    )
+
+    const wrapper = mountPage({ stubPagination: true })
+    await settle()
+
+    expect(wrapper.find('.pagination-shell').exists()).toBe(true)
+    expect(wrapper.find('.pagination-bar').exists()).toBe(true)
+    expect(wrapper.find('.pagination-bar').attributes('data-state')).toBe('visible')
+  })
 })

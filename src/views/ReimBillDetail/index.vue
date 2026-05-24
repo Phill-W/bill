@@ -50,7 +50,7 @@ onMounted(async () => {
 <template>
   <main class="reim-detail-page">
     <BillHeader />
-    <div class="detail-content">
+    <div class="detail-content detail-content--entered">
       <BasicInfoSection />
       <ItinerarySection />
       <SubsidySection />
@@ -72,5 +72,21 @@ onMounted(async () => {
 .detail-content {
   width: 1200px;
   margin: 12px auto 18px;
+}
+
+.detail-content--entered {
+  animation: detail-content-enter 0.22s ease-out;
+}
+
+@keyframes detail-content-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>

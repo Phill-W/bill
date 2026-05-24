@@ -28,5 +28,6 @@ describe('SectionPanel', () => {
 
     await wrapper.get('.section-panel__toggle').trigger('click')
     expect(wrapper.get('.section-panel__body').attributes('style') || '').toBe('')
+    expect(wrapper.get('[data-state="expanded-body"]').exists()).toBe(true)
   })
 })
