@@ -7,7 +7,7 @@ const store = useReimBillStore()
 <template>
   <header class="bill-header">
     <div class="bill-meta">
-      <span>报销单号：{{ store.main.reimNo || '提交后生成' }}</span>
+      <span>报销单号：{{ store.main.reimNo || '保存后生成' }}</span>
       <span v-if="store.main.statusName">状态：{{ store.main.statusName }}</span>
     </div>
     <h1>差旅费用报销单</h1>

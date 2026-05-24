@@ -30,6 +30,14 @@ export function submitReimBill(data: ReimBillSubmitDTO) {
   return request.post<SubmitResult>('/api/v1/reim-bills/submit', data)
 }
 
+export function createReimBillDraft(data: ReimBillSubmitDTO) {
+  return request.post<SubmitResult>('/api/v1/reim-bills/draft', data)
+}
+
+export function updateReimBillDraft(id: string, data: ReimBillSubmitDTO) {
+  return request.post<SubmitResult>(`/api/v1/reim-bills/${id}/draft`, data)
+}
+
 export function updateReimBill(id: string, data: ReimBillSubmitDTO) {
   return request.post<SubmitResult>(`/api/v1/reim-bills/${id}/submit`, data)
 }

@@ -20,11 +20,15 @@ describe('reim bill api', () => {
   })
 
   it('uses POST for editing and resubmitting an existing bill', async () => {
-    const { updateReimBill } = await import('@/api/reimBillApi')
+    const { createReimBillDraft, updateReimBill, updateReimBillDraft } = await import('@/api/reimBillApi')
     const payload = { main: {}, itineraries: [], subsidies: [], subsidyCalendars: [], allocations: [] } as unknown as ReimBillSubmitDTO
 
+    await createReimBillDraft(payload)
+    await updateReimBillDraft('bill-1', payload)
     await updateReimBill('bill-1', payload)
 
+    expect(requestMock.post).toHaveBeenCalledWith('/api/v1/reim-bills/draft', payload)
+    expect(requestMock.post).toHaveBeenCalledWith('/api/v1/reim-bills/bill-1/draft', payload)
     expect(requestMock.post).toHaveBeenCalledWith('/api/v1/reim-bills/bill-1/submit', payload)
     expect(requestMock.put).not.toHaveBeenCalled()
   })

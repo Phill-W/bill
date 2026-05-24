@@ -79,7 +79,12 @@ function createDetail(): ReimBillDetailDTO {
       statusName: REIM_STATUS.DRAFT.name,
       remarks: '',
     },
-    itineraries: [itinerary],
+    itineraries: [
+      {
+        ...itinerary,
+        clientItineraryId: '',
+      },
+    ],
     subsidies: [],
     subsidyCalendars: [],
     allocations: [],
@@ -113,81 +118,67 @@ describe('ItinerarySection persistence', () => {
     expect(loadDetailSpy).not.toHaveBeenCalled()
   })
 
-  it('creates an itinerary immediately for existing bills and refreshes detail', async () => {
+  it('edits an existing draft itinerary locally instead of calling the backend', async () => {
     routeMock.path = '/reim-bills/detail/bill-1'
     routeMock.params = { id: 'bill-1' }
-    apiMock.createReimItinerary.mockResolvedValue(true)
     const store = useReimBillStore()
     store.applyDetail(createDetail())
-    const loadDetailSpy = vi.spyOn(store, 'loadDetail').mockResolvedValue(undefined)
+    const loadDetailSpy = vi.spyOn(store, 'loadDetail')
     const wrapper = mount(ItinerarySection, {
       global: {
         plugins: [ElementPlus],
       },
     })
 
+    const existing = store.itineraries[0]
+    expect(existing?.clientItineraryId).toBe('server-itinerary-1')
+
+    ;(wrapper.vm as unknown as { openEdit: (row: ReimItineraryDTO) => void }).openEdit(existing as ReimItineraryDTO)
     wrapper.findComponent(ItineraryDialog).vm.$emit('save', {
-      ...itinerary,
-      id: null,
-      clientItineraryId: 'new-client-itinerary',
-    })
-    await vi.waitFor(() => expect(apiMock.createReimItinerary).toHaveBeenCalled())
-
-    expect(apiMock.createReimItinerary).toHaveBeenCalledWith(
-      'bill-1',
-      expect.objectContaining({ clientItineraryId: 'new-client-itinerary' }),
-    )
-    expect(loadDetailSpy).toHaveBeenCalledWith('bill-1')
-  })
-
-  it('updates an existing itinerary immediately and refreshes detail', async () => {
-    routeMock.path = '/reim-bills/detail/bill-1'
-    routeMock.params = { id: 'bill-1' }
-    apiMock.updateReimItinerary.mockResolvedValue(true)
-    const store = useReimBillStore()
-    store.applyDetail(createDetail())
-    const loadDetailSpy = vi.spyOn(store, 'loadDetail').mockResolvedValue(undefined)
-    const wrapper = mount(ItinerarySection, {
-      global: {
-        plugins: [ElementPlus],
-      },
-    })
-
-    ;(wrapper.vm as unknown as { openEdit: (row: ReimItineraryDTO) => void }).openEdit(itinerary)
-    wrapper.findComponent(ItineraryDialog).vm.$emit('save', {
-      ...itinerary,
+      ...existing,
       itineraryInstructions: '更新后的客户拜访',
     })
-    await vi.waitFor(() => expect(apiMock.updateReimItinerary).toHaveBeenCalled())
+    await wrapper.vm.$nextTick()
 
-    expect(apiMock.updateReimItinerary).toHaveBeenCalledWith(
-      'bill-1',
-      'server-itinerary-1',
-      expect.objectContaining({ itineraryInstructions: '更新后的客户拜访' }),
-    )
-    expect(loadDetailSpy).toHaveBeenCalledWith('bill-1')
+    expect(store.itineraries).toHaveLength(1)
+    expect(store.itineraries[0]?.itineraryInstructions).toBe('更新后的客户拜访')
+    expect(apiMock.updateReimItinerary).not.toHaveBeenCalled()
+    expect(loadDetailSpy).not.toHaveBeenCalled()
   })
 
-  it('deletes an existing itinerary immediately and refreshes detail', async () => {
+  it('copies and deletes draft itineraries locally for existing draft bills', async () => {
     routeMock.path = '/reim-bills/detail/bill-1'
     routeMock.params = { id: 'bill-1' }
-    apiMock.deleteReimItinerary.mockResolvedValue(true)
     vi.spyOn(ElMessageBox, 'confirm').mockResolvedValue('confirm' as never)
     const store = useReimBillStore()
     store.applyDetail(createDetail())
-    const loadDetailSpy = vi.spyOn(store, 'loadDetail').mockResolvedValue(undefined)
+    const loadDetailSpy = vi.spyOn(store, 'loadDetail')
     const wrapper = mount(ItinerarySection, {
       global: {
         plugins: [ElementPlus],
       },
     })
 
-    await (wrapper.vm as unknown as { handleDelete: (row: ReimItineraryDTO) => Promise<void> }).handleDelete(
-      itinerary,
-    )
-    await vi.waitFor(() => expect(apiMock.deleteReimItinerary).toHaveBeenCalled())
+    const existing = store.itineraries[0] as ReimItineraryDTO
+    ;(wrapper.vm as unknown as { openCopy: (row: ReimItineraryDTO) => void }).openCopy(existing)
+    wrapper.findComponent(ItineraryDialog).vm.$emit('save', {
+      ...existing,
+      id: null,
+      clientItineraryId: 'client-copy-itinerary-1',
+      itineraryInstructions: '复制后的行程',
+      sortNo: 2,
+    })
+    await wrapper.vm.$nextTick()
 
-    expect(apiMock.deleteReimItinerary).toHaveBeenCalledWith('bill-1', 'server-itinerary-1')
-    expect(loadDetailSpy).toHaveBeenCalledWith('bill-1')
+    expect(store.itineraries).toHaveLength(2)
+    expect(apiMock.createReimItinerary).not.toHaveBeenCalled()
+
+    await (wrapper.vm as unknown as { handleDelete: (row: ReimItineraryDTO) => Promise<void> }).handleDelete(
+      store.itineraries[1] as ReimItineraryDTO,
+    )
+
+    expect(store.itineraries).toHaveLength(1)
+    expect(apiMock.deleteReimItinerary).not.toHaveBeenCalled()
+    expect(loadDetailSpy).not.toHaveBeenCalled()
   })
 })
