@@ -15,6 +15,10 @@ import { formatMoney, formatPercent, toRatio } from '@/utils/money'
 
 const store = useReimBillStore()
 
+function isLockedFirstAllocationRow(row: ReimAllocationDTO, index: number) {
+  return row.isFirstRow === '1' || index === 0
+}
+
 function addAllocation() {
   store.allocations.push({
     reimCompanyId: '',
@@ -121,7 +125,10 @@ function splitEvenly() {
         <el-table-column label="序号" width="54" align="center">
           <template #default="{ $index }">{{ $index + 1 }}</template>
         </el-table-column>
-        <el-table-column label="费用归属" min-width="190">
+        <el-table-column min-width="190">
+          <template #header>
+            <span class="allocation-required-header">费用归属<span class="allocation-required-mark">*</span></span>
+          </template>
           <template #default="{ row }">
             <el-select
               v-model="row.reimCompanyId"
@@ -158,22 +165,42 @@ function splitEvenly() {
             </el-select>
           </template>
         </el-table-column>
-        <el-table-column label="分摊比例" width="150" align="right">
+        <el-table-column width="150" align="right">
+          <template #header>
+            <span class="allocation-required-header allocation-required-header--right">分摊比例<span class="allocation-required-mark">*</span></span>
+          </template>
           <template #default="{ row, $index }">
-            <span v-if="$index === 0 || store.isReadonly">{{ formatPercent(row.allocationRatio).toFixed(2) }}%</span>
-            <el-input-number
-              v-else
-              :model-value="formatPercent(row.allocationRatio)"
-              :min="0"
-              :max="100"
-              :precision="2"
-              controls-position="right"
-              @change="onRatioChange(row, Number($event || 0))"
-            />
+            <span v-if="store.isReadonly || isLockedFirstAllocationRow(row, $index)" class="allocation-static-field">
+              {{ formatPercent(row.allocationRatio).toFixed(2) }}%
+            </span>
+            <div v-else class="allocation-ratio-input-wrap">
+              <el-input-number
+                class="allocation-ratio-input"
+                :model-value="formatPercent(row.allocationRatio)"
+                :min="0"
+                :max="100"
+                :precision="2"
+                :controls="false"
+                @change="onRatioChange(row, Number($event || 0))"
+              />
+              <span class="allocation-ratio-input__suffix" aria-hidden="true">%</span>
+            </div>
           </template>
         </el-table-column>
-        <el-table-column label="分摊金额" width="140" align="right">
-          <template #default="{ row }">{{ formatMoney(row.allocationAmount) }}</template>
+        <el-table-column width="140" align="right">
+          <template #header>
+            <span class="allocation-required-header allocation-required-header--right">分摊金额<span class="allocation-required-mark">*</span></span>
+          </template>
+          <template #default="{ row, $index }">
+            <span
+              :class="[
+                'allocation-static-field',
+                { 'allocation-static-field--editable-surface': !store.isReadonly && !isLockedFirstAllocationRow(row, $index) },
+              ]"
+            >
+              {{ formatMoney(row.allocationAmount) }}
+            </span>
+          </template>
         </el-table-column>
         <el-table-column v-if="!store.isReadonly" label="操作" width="72" align="center">
           <template #default="{ $index }">
@@ -197,11 +224,85 @@ function splitEvenly() {
 <style scoped>
 .split-button {
   min-width: 60px;
+  height: 28px;
+  padding: 0 14px;
+  border-radius: 3px;
+}
+
+.allocation-required-header {
+  display: inline-flex;
+  align-items: center;
+}
+
+.allocation-required-header--right {
+  width: 100%;
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.allocation-required-mark {
+  margin-left: 2px;
+  color: var(--el-color-danger);
+  font-weight: 600;
 }
 
 .allocation-panel {
   display: grid;
   gap: 0;
+}
+
+.allocation-ratio-input {
+  width: 100%;
+}
+
+.allocation-ratio-input-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.allocation-ratio-input__suffix {
+  position: absolute;
+  top: 50%;
+  right: 11px;
+  transform: translateY(-50%);
+  color: #98a2b3;
+  pointer-events: none;
+}
+
+.allocation-static-field {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  min-height: 32px;
+  padding: 0 11px;
+  border: 1px solid var(--bill-field-border);
+  border-radius: 4px;
+  background: var(--bill-field-bg);
+  color: var(--bill-field-text);
+  box-sizing: border-box;
+  font-variant-numeric: tabular-nums;
+}
+
+.allocation-static-field--editable-surface {
+  background: #fff;
+}
+
+.allocation-table :deep(.el-input-number) {
+  width: 100%;
+}
+
+.allocation-table :deep(.el-input-number .el-input__wrapper) {
+  min-height: 32px;
+  padding: 0 28px 0 11px;
+  background: #fff;
+  justify-content: flex-end;
+}
+
+.allocation-table :deep(.el-input-number .el-input__inner) {
+  text-align: right;
+  color: var(--bill-field-text);
+  font-variant-numeric: tabular-nums;
 }
 
 .allocation-add-row {

@@ -66,12 +66,14 @@ onMounted(async () => {
 .reim-detail-page {
   min-height: 100vh;
   padding-bottom: 0;
-  background: #f5f7fa;
+  background: var(--bill-page-bg);
 }
 
 .detail-content {
   width: 1200px;
   margin: 12px auto 18px;
+  padding: 12px 14px 24px;
+  background: #fff;
 }
 
 .detail-content--entered {

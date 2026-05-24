@@ -28,6 +28,22 @@ describe('SectionPanel', () => {
 
     await wrapper.get('.section-panel__toggle').trigger('click')
     expect(wrapper.get('.section-panel__body').attributes('style') || '').toBe('')
-    expect(wrapper.get('[data-state="expanded-body"]').exists()).toBe(true)
+    expect(wrapper.find('[data-state="expanded-body"]').exists()).toBe(true)
+  })
+
+  it('renders header-extra content inside the title lead area', () => {
+    const wrapper = mount(SectionPanel, {
+      props: {
+        title: '补助信息',
+        subtitle: '120.00（共2人:6天）',
+      },
+      slots: {
+        'header-extra': '<span class="header-extra-slot">⚠️ 测试提示</span>',
+        default: '<div class="panel-content">补助表格</div>',
+      },
+    })
+
+    expect(wrapper.get('.section-panel__header-extra').text()).toContain('⚠️ 测试提示')
+    expect(wrapper.get('.section-panel__lead').text()).toContain('补助信息')
   })
 })

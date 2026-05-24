@@ -179,16 +179,15 @@ describe('FooterActions', () => {
     store.allocations = [
       {
         id: null,
-        clientAllocationId: 'allocation-1',
         reimCompanyId: 'company-1',
-        reimDepartmentId: '',
-        reimDepartmentName: '',
-        projectId: '',
-        projectName: '',
-        fundType: '1',
+        reimCompanyNo: 'COM001',
+        reimCompanyName: '示例公司',
+        projectId: null,
+        projectNo: null,
+        projectName: null,
         allocationRatio: 1,
         allocationAmount: 0,
-        remarks: '',
+        isFirstRow: '1',
         sortNo: 1,
       },
     ]

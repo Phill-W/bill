@@ -4,7 +4,7 @@
 
 :root {
   --bill-page-bg: #f6f8fc;
-  --bill-panel-bg: #f8f8f9;
+  --bill-panel-bg: #fff;
   --bill-panel-border: #e7eaf0;
   --bill-panel-header-bg: #f2f3f6;
   --bill-panel-header-text: #31415c;
@@ -155,6 +155,11 @@ a {
   gap: 8px;
 }
 
+.section-panel__lead {
+  min-width: 0;
+  flex: 1;
+}
+
 .section-panel__marker {
   width: 3px;
   height: 18px;
@@ -171,6 +176,13 @@ a {
   color: var(--bill-panel-subtle);
   font-size: 13px;
   font-weight: 500;
+}
+
+.section-panel__header-extra {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1;
 }
 
 .section-panel__icon {
@@ -290,19 +302,20 @@ a {
 }
 
 .section-panel__body .el-form {
-  --el-disabled-bg-color: #fff;
+  --el-disabled-bg-color: var(--bill-field-bg);
   --el-disabled-border-color: var(--bill-field-border);
   --el-disabled-text-color: var(--bill-field-text);
 }
 
 .section-panel__body :is(.el-input__wrapper, .el-textarea__inner, .el-select__wrapper, .el-tree-select__wrapper, .el-input-number__wrapper) {
-  background: var(--bill-field-bg);
+  background: #fff;
   box-shadow: 0 0 0 1px var(--bill-field-border) inset;
 }
 
-.section-panel__body .el-textarea__inner {
-  background: #fff;
-  border-color: var(--bill-field-border);
+.section-panel__body :is(.el-input__wrapper.is-disabled, .el-select__wrapper.is-disabled, .el-tree-select__wrapper.is-disabled, .el-input-number__wrapper.is-disabled),
+.section-panel__body :is(.el-input.is-disabled .el-input__wrapper, .el-select.is-disabled .el-select__wrapper, .el-tree-select.is-disabled .el-tree-select__wrapper, .el-input-number.is-disabled .el-input-number__wrapper),
+.section-panel__body :is(.el-textarea.is-disabled .el-textarea__inner, .el-textarea__inner:disabled, .el-textarea__inner[readonly]) {
+  background: var(--bill-field-bg);
 }
 
 .section-panel__body :is(.el-input__inner, .el-select__placeholder, .el-select__selected-item, .el-tree-select__placeholder) {

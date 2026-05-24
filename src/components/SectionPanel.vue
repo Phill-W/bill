@@ -42,6 +42,9 @@ function toggleExpanded() {
         <span class="section-panel__marker" />
         <span class="section-panel__title">{{ title }}</span>
         <span v-if="subtitle" class="section-panel__subtitle">{{ subtitle }}</span>
+        <span v-if="$slots['header-extra']" class="section-panel__header-extra">
+          <slot name="header-extra" />
+        </span>
       </span>
       <span class="section-panel__actions">
         <slot name="header-actions" />
