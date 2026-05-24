@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { Delete, Plus, Refresh } from '@element-plus/icons-vue'
+import { Delete, Plus } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
+import refreshCcwAltIcon from '@/assets/icons/refresh-ccw-alt-1-svgrepo-com.svg'
 import SectionPanel from '@/components/SectionPanel.vue'
 import { projectOptions, reimCompanyOptions } from '@/constants/staticData'
 import { useReimBillStore } from '@/stores/reimBillStore'
@@ -108,18 +109,6 @@ function splitEvenly() {
 
 <template>
   <SectionPanel title="费用归属及分摊" :subtitle="`（分摊金额：${formatMoney(store.main.allocationTotal)}）`">
-    <template #header-actions>
-      <el-button
-        v-if="!store.isReadonly"
-        :icon="Refresh"
-        type="primary"
-        size="small"
-        class="split-button"
-        @click.stop="splitEvenly"
-      >
-        均摊
-      </el-button>
-    </template>
     <div class="allocation-panel">
       <el-table :data="store.allocations" border size="small" class="bill-inline-table allocation-table">
         <el-table-column label="序号" width="54" align="center">
@@ -167,7 +156,21 @@ function splitEvenly() {
         </el-table-column>
         <el-table-column width="150" align="right">
           <template #header>
-            <span class="allocation-required-header allocation-required-header--right">分摊比例<span class="allocation-required-mark">*</span></span>
+            <span class="allocation-required-header allocation-required-header--right">
+              <span>分摊比例</span>
+              <el-tooltip
+                v-if="!store.isReadonly"
+                content="均摊"
+                placement="top"
+                effect="light"
+                popper-class="allocation-split-tooltip"
+              >
+                <button type="button" class="allocation-split-trigger" @click.stop="splitEvenly">
+                  <img class="allocation-split-trigger__icon" :src="refreshCcwAltIcon" alt="均摊" />
+                </button>
+              </el-tooltip>
+              <span class="allocation-required-mark">*</span>
+            </span>
           </template>
           <template #default="{ row, $index }">
             <span v-if="store.isReadonly || isLockedFirstAllocationRow(row, $index)" class="allocation-static-field">
@@ -222,13 +225,6 @@ function splitEvenly() {
 </template>
 
 <style scoped>
-.split-button {
-  min-width: 60px;
-  height: 28px;
-  padding: 0 14px;
-  border-radius: 3px;
-}
-
 .allocation-required-header {
   display: inline-flex;
   align-items: center;
@@ -244,6 +240,31 @@ function splitEvenly() {
   margin-left: 2px;
   color: var(--el-color-danger);
   font-weight: 600;
+}
+
+.allocation-split-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: 5px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.allocation-split-trigger:hover {
+  opacity: 0.85;
+}
+
+.allocation-split-trigger__icon {
+  width: 16px;
+  height: 16px;
+  display: block;
+  filter: invert(50%) sepia(88%) saturate(2863%) hue-rotate(202deg) brightness(100%) contrast(94%);
 }
 
 .allocation-panel {

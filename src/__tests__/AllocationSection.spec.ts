@@ -40,7 +40,7 @@ describe('AllocationSection', () => {
     expect(requiredHeaders.some((text) => text.includes('项目'))).toBe(false)
   })
 
-  it('shows the split button only for editable bills', () => {
+  it('shows the split trigger only for editable bills', () => {
     const store = useReimBillStore()
     store.initCreate()
 
@@ -51,7 +51,7 @@ describe('AllocationSection', () => {
       },
     })
 
-    expect(editableWrapper.find('.split-button').exists()).toBe(true)
+    expect(editableWrapper.find('.allocation-split-trigger').exists()).toBe(true)
 
     store.main.statusCode = REIM_STATUS.COMPLETED.code
     store.main.statusName = REIM_STATUS.COMPLETED.name
@@ -62,7 +62,7 @@ describe('AllocationSection', () => {
       },
     })
 
-    expect(readonlyWrapper.find('.split-button').exists()).toBe(false)
+    expect(readonlyWrapper.find('.allocation-split-trigger').exists()).toBe(false)
   })
 
   it('renders editable ratio inputs without changing the first-row display field', () => {

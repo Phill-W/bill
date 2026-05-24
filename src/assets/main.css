@@ -321,3 +321,18 @@ a {
 .section-panel__body :is(.el-input__inner, .el-select__placeholder, .el-select__selected-item, .el-tree-select__placeholder) {
   color: var(--bill-field-text);
 }
+
+.allocation-split-tooltip.el-popper.is-light {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.allocation-split-tooltip.el-popper.is-light .el-popper__arrow::before {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.allocation-split-tooltip.el-popper.is-light,
+.allocation-split-tooltip.el-popper.is-light .el-popper__content {
+  color: #fff;
+}
