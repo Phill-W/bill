@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import chartTreeMapIcon from '@/assets/icons/chart-tree-map-svgrepo-com.svg'
 import circleDotsVerticalIcon from '@/assets/icons/circle-dots-vertical-svgrepo-com.svg'
-import fileContractIcon from '@/assets/icons/file-contract-svgrepo-com.svg'
+import fileArrowUpAltIcon from '@/assets/icons/file-arrow-up-alt-svgrepo-com.svg'
 import markerIcon from '@/assets/icons/marker-svgrepo-com.svg'
 import BillListActionIcon from '@/components/BillListActionIcon.vue'
 import { canEditListRow, getReimBillMenuActions } from '@/constants/reimBillListActions'
@@ -63,7 +63,8 @@ function handleMenuCommand(command: string, row: ReimBillListItem) {
       <template #default="{ row }">
         <div class="table-actions">
           <BillListActionIcon
-            :src="fileContractIcon"
+            :src="fileArrowUpAltIcon"
+            :icon-size="16"
             alt="附件"
             title="暂不可用"
             action="file"
@@ -71,6 +72,7 @@ function handleMenuCommand(command: string, row: ReimBillListItem) {
           />
           <BillListActionIcon
             :src="markerIcon"
+            :icon-size="16"
             alt="编辑"
             title="编辑"
             action="edit"
@@ -81,6 +83,7 @@ function handleMenuCommand(command: string, row: ReimBillListItem) {
           <el-dropdown trigger="click" popper-class="bill-list-dropdown" @command="handleMenuCommand($event, row)">
             <BillListActionIcon
               :src="circleDotsVerticalIcon"
+              :icon-size="16"
               alt="更多操作"
               title="更多操作"
               action="more"
@@ -152,8 +155,8 @@ function handleMenuCommand(command: string, row: ReimBillListItem) {
 
 <style scoped>
 .index-header-icon {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   display: block;
   margin: 0 auto;
   filter: invert(49%) sepia(61%) saturate(2408%) hue-rotate(210deg) brightness(100%) contrast(102%);

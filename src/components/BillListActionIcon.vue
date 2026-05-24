@@ -10,6 +10,7 @@ const props = withDefaults(
     action?: string
     iconName?: string
     useTooltip?: boolean
+    iconSize?: number
   }>(),
   {
     title: '',
@@ -19,6 +20,7 @@ const props = withDefaults(
     action: '',
     iconName: '',
     useTooltip: true,
+    iconSize: 14,
   },
 )
 
@@ -52,7 +54,11 @@ function handleClick() {
         class="bill-list-action-icon__image"
         :src="src"
         :alt="alt"
-        :style="{ transform: `rotate(${rotate}deg)` }"
+        :style="{
+          width: `${iconSize}px`,
+          height: `${iconSize}px`,
+          transform: `rotate(${rotate}deg)`,
+        }"
       />
     </button>
   </el-tooltip>
@@ -75,7 +81,11 @@ function handleClick() {
       class="bill-list-action-icon__image"
       :src="src"
       :alt="alt"
-      :style="{ transform: `rotate(${rotate}deg)` }"
+      :style="{
+        width: `${iconSize}px`,
+        height: `${iconSize}px`,
+        transform: `rotate(${rotate}deg)`,
+      }"
     />
   </button>
 </template>
