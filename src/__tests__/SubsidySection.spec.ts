@@ -80,7 +80,7 @@ describe('SubsidySection', () => {
 
     expect(wrapper.text()).toContain('120.00（共2人:6天）')
     expect(wrapper.find('.subsidy-header-tip').exists()).toBe(true)
-    expect(wrapper.find('.subsidy-header-tip').text()).toContain('⚠️')
+    expect(wrapper.find('.subsidy-header-tip .el-icon svg').exists()).toBe(true)
     expect(wrapper.find('.subsidy-header-tip__text').text()).toContain('请根据实际出差日期选择补助')
     expect(wrapper.find('.subsidy-tip').exists()).toBe(false)
     expect(wrapper.find('table').exists()).toBe(true)

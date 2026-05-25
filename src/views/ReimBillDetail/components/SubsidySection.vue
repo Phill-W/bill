@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { EditPen } from '@element-plus/icons-vue'
+import { EditPen, Warning, WarnTriangleFilled } from '@element-plus/icons-vue'
 
 import SectionPanel from '@/components/SectionPanel.vue'
 import { useReimBillStore } from '@/stores/reimBillStore'
@@ -62,16 +62,27 @@ function openCalendar(row: ReimSubsidyDTO) {
   <SectionPanel title="补助信息" :subtitle="summaryText">
     <template v-if="hasSubsidies" #header-extra>
       <span class="subsidy-header-tip" :title="subsidyTipText">
-        <span class="subsidy-header-tip__symbol" aria-hidden="true">⚠️</span>
+        <span class="subsidy-header-tip__symbol" aria-hidden="true">
+          <el-icon><WarnTriangleFilled /></el-icon>
+        </span>
         <span class="subsidy-header-tip__text">{{ subsidyTipText }}</span>
       </span>
     </template>
 
     <div v-if="!hasSubsidies" class="subsidy-tip subsidy-tip--inline">
-      <span class="subsidy-tip__symbol" aria-hidden="true">⚠️</span>
+      <el-icon><Warning /></el-icon>
+      <span class="subsidy-tip__symbol" aria-hidden="true">
+        <el-icon><Warning /></el-icon>
+      </span>
       <span>{{ subsidyTipText }}</span>
     </div>
-    <el-table v-else :data="store.subsidies" border size="small" class="bill-inline-table subsidy-table">
+    <el-table
+      v-else
+      :data="store.subsidies"
+      border
+      size="small"
+      class="bill-inline-table subsidy-table"
+    >
       <el-table-column label="序号" width="54" align="center">
         <template #default="{ $index }">{{ $index + 1 }}</template>
       </el-table-column>
