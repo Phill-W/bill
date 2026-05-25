@@ -63,6 +63,11 @@ export interface ReimBillSubmitDTO {
 
 export type ReimBillDetailDTO = ReimBillSubmitDTO
 
+export interface ReimItineraryOperationDTO {
+  itinerary: ReimItineraryDTO
+  subsidy: ReimSubsidyDTO
+}
+
 export interface ReimMainDTO {
   id?: string | null
   reimNo?: string | null

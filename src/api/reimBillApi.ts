@@ -6,6 +6,7 @@ import type {
   ReimBillQuery,
   ReimBillSubmitDTO,
   ReimItineraryDTO,
+  ReimItineraryOperationDTO,
   ReimItineraryPayload,
 } from '@/types/reimBill'
 
@@ -75,17 +76,17 @@ export function toReimItineraryPayload(itinerary: ReimItineraryDTO): ReimItinera
 }
 
 export function createReimItinerary(id: string, itinerary: ReimItineraryDTO) {
-  return request.post<boolean>(`/api/v1/reim-bills/${id}/itineraries`, {
+  return request.post<ReimItineraryOperationDTO>(`/api/v1/reim-bills/${id}/itineraries`, {
     itinerary: toReimItineraryPayload(itinerary),
   })
 }
 
 export function updateReimItinerary(id: string, itineraryId: string, itinerary: ReimItineraryDTO) {
-  return request.post<boolean>(`/api/v1/reim-bills/${id}/itineraries/${itineraryId}/update`, {
+  return request.post<ReimItineraryOperationDTO>(`/api/v1/reim-bills/${id}/itineraries/${itineraryId}/update`, {
     itinerary: toReimItineraryPayload(itinerary),
   })
 }
 
 export function deleteReimItinerary(id: string, itineraryId: string) {
-  return request.post<boolean>(`/api/v1/reim-bills/${id}/itineraries/${itineraryId}/delete`, {})
+  return request.post<ReimBillDetailDTO>(`/api/v1/reim-bills/${id}/itineraries/${itineraryId}/delete`, {})
 }

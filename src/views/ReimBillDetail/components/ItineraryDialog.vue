@@ -54,6 +54,7 @@ watch(
 )
 
 function handleSave() {
+  if (props.saving) return
   try {
     const sortNo = props.editing && !props.copyMode ? props.editing.sortNo : props.existingItineraries.length + 1
     const itinerary = buildItinerary(form, sortNo)
@@ -172,6 +173,7 @@ function handleSave() {
           class="itinerary-button itinerary-button--save"
           type="primary"
           :loading="saving"
+          :disabled="saving"
           @click="handleSave"
         >
           保存

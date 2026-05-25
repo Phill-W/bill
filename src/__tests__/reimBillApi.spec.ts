@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { ReimBillSubmitDTO, ReimItineraryDTO } from '@/types/reimBill'
+import type {
+  ReimBillDetailDTO,
+  ReimBillSubmitDTO,
+  ReimItineraryDTO,
+  ReimItineraryOperationDTO,
+} from '@/types/reimBill'
 
 const requestMock = vi.hoisted(() => ({
   get: vi.fn(),
@@ -60,8 +65,14 @@ describe('reim bill api', () => {
     } satisfies ReimItineraryDTO
 
     const payload = toReimItineraryPayload(itinerary)
-    await createReimItinerary('bill-1', itinerary)
-    await updateReimItinerary('bill-1', 'server-itinerary-1', itinerary)
+    const createResult: ReimItineraryOperationDTO = await createReimItinerary('bill-1', itinerary)
+    const updateResult: ReimItineraryOperationDTO = await updateReimItinerary(
+      'bill-1',
+      'server-itinerary-1',
+      itinerary,
+    )
+    void createResult
+    void updateResult
 
     expect(payload).not.toHaveProperty('id')
     expect(payload).not.toHaveProperty('clientItineraryId')
@@ -77,7 +88,8 @@ describe('reim bill api', () => {
   it('calls the backend itinerary delete endpoint', async () => {
     const { deleteReimItinerary } = await import('@/api/reimBillApi')
 
-    await deleteReimItinerary('bill-1', 'server-itinerary-1')
+    const deleteResult: ReimBillDetailDTO = await deleteReimItinerary('bill-1', 'server-itinerary-1')
+    void deleteResult
 
     expect(requestMock.post).toHaveBeenCalledWith(
       '/api/v1/reim-bills/bill-1/itineraries/server-itinerary-1/delete',
